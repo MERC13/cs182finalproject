@@ -1,0 +1,4 @@
+# Second seed at init 0.044 (SGD lr 0.1, AdamW, Muon), λ ∝ 1/i².
+--opt sgd --lr 0.1 --clip 1.0 --steps 4000 --hidden_init 0.044 --y_mode concat --readin_init gauss --cond 1/i2-ali --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 500 --iw_every 250 --seed 11 --out runs/init/sgd_lr0.1_init044_s11.json
+--opt adamw --lr 5e-4 --beta2 0.999 --steps 6000 --hidden_init 0.044 --y_mode concat --readin_init gauss --cond 1/i2-ali --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 500 --iw_every 250 --seed 11 --out runs/init/adamw_init044_s11.json
+--opt muon --lr 0.007 --steps 3000 --hidden_init 0.044 --y_mode concat --readin_init gauss --cond 1/i2-ali --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 500 --iw_every 250 --seed 11 --out runs/init/muon_init044_s11.json

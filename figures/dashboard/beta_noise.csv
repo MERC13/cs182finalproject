@@ -1,0 +1,48 @@
+run,model,opt,batch,beta,lo,hi,n
+1/i2-ali|adam|16,"One-layer linear attention, λ ∝ 1/i²",Adam,16,1.299,1.264,1.356,3
+1/i2-ali|adam|64,"One-layer linear attention, λ ∝ 1/i²",Adam,64,1.225,1.201,1.232,3
+1/i2-ali|adam|256,"One-layer linear attention, λ ∝ 1/i²",Adam,256,0.969,0.938,0.971,3
+1/i2-ali|adam|1024,"One-layer linear attention, λ ∝ 1/i²",Adam,1024,0.766,0.733,0.773,3
+1/i2-ali|gd|16,"One-layer linear attention, λ ∝ 1/i²",SGD,16,1.246,1.245,1.247,2
+1/i2-ali|gd|64,"One-layer linear attention, λ ∝ 1/i²",SGD,64,1.304,1.17,1.416,3
+1/i2-ali|gd|256,"One-layer linear attention, λ ∝ 1/i²",SGD,256,1.371,1.366,1.375,2
+1/i2-ali|gd|1024,"One-layer linear attention, λ ∝ 1/i²",SGD,1024,1.657,1.564,1.75,2
+1/i2-ali|muon|16,"One-layer linear attention, λ ∝ 1/i²",Muon,16,0.901,0.828,1.061,3
+1/i2-ali|muon|64,"One-layer linear attention, λ ∝ 1/i²",Muon,64,0.683,0.582,0.711,3
+1/i2-ali|muon|256,"One-layer linear attention, λ ∝ 1/i²",Muon,256,0.564,0.458,0.624,3
+1/i2-ali|muon|1024,"One-layer linear attention, λ ∝ 1/i²",Muon,1024,0.371,0.341,0.378,3
+1/i2-ali|muon_exact|16,"One-layer linear attention, λ ∝ 1/i²",Muon (exact),16,0.687,0.646,0.689,3
+1/i2-ali|muon_exact|64,"One-layer linear attention, λ ∝ 1/i²",Muon (exact),64,0.642,0.617,0.767,3
+1/i2-ali|muon_exact|256,"One-layer linear attention, λ ∝ 1/i²",Muon (exact),256,0.408,0.351,0.482,3
+1/i2-ali|muon_exact|1024,"One-layer linear attention, λ ∝ 1/i²",Muon (exact),1024,0.25,0.234,0.271,3
+1/i2-ali|muon_exact_m0|16,"One-layer linear attention, λ ∝ 1/i²","Muon (exact, no momentum)",16,0.867,0.751,0.913,3
+1/i2-ali|muon_exact_m0|64,"One-layer linear attention, λ ∝ 1/i²","Muon (exact, no momentum)",64,0.774,0.712,0.778,3
+1/i2-ali|muon_exact_m0|256,"One-layer linear attention, λ ∝ 1/i²","Muon (exact, no momentum)",256,0.546,0.544,0.569,3
+1/i2-ali|muon_exact_m0|1024,"One-layer linear attention, λ ∝ 1/i²","Muon (exact, no momentum)",1024,0.327,0.327,0.409,3
+1/i2-ali|muon_m0|16,"One-layer linear attention, λ ∝ 1/i²",Muon (no momentum),16,0.837,0.825,0.93,3
+1/i2-ali|muon_m0|64,"One-layer linear attention, λ ∝ 1/i²",Muon (no momentum),64,0.776,0.673,0.812,3
+1/i2-ali|muon_m0|256,"One-layer linear attention, λ ∝ 1/i²",Muon (no momentum),256,0.66,0.583,0.687,3
+1/i2-ali|muon_m0|1024,"One-layer linear attention, λ ∝ 1/i²",Muon (no momentum),1024,0.433,0.408,0.564,3
+1/i2-ali|signgd|16,"One-layer linear attention, λ ∝ 1/i²",SignGD,16,1.21,1.124,1.327,3
+1/i2-ali|signgd|64,"One-layer linear attention, λ ∝ 1/i²",SignGD,64,1.168,1.124,1.182,3
+1/i2-ali|signgd|256,"One-layer linear attention, λ ∝ 1/i²",SignGD,256,1.071,0.974,1.107,3
+1/i2-ali|signgd|1024,"One-layer linear attention, λ ∝ 1/i²",SignGD,1024,0.997,0.963,0.997,3
+1/i-ali|adam|16,"One-layer linear attention, λ ∝ 1/i",Adam,16,1.651,1.484,1.672,3
+1/i-ali|adam|64,"One-layer linear attention, λ ∝ 1/i",Adam,64,1.363,1.247,1.377,3
+1/i-ali|adam|256,"One-layer linear attention, λ ∝ 1/i",Adam,256,1.016,1.006,1.047,3
+1/i-ali|adam|1024,"One-layer linear attention, λ ∝ 1/i",Adam,1024,0.692,0.668,0.728,3
+1/i-ali|gd|16,"One-layer linear attention, λ ∝ 1/i",SGD,16,1.343,1.328,1.611,3
+1/i-ali|gd|64,"One-layer linear attention, λ ∝ 1/i",SGD,64,1.598,1.481,1.884,3
+1/i-ali|gd|256,"One-layer linear attention, λ ∝ 1/i",SGD,256,1.721,1.481,1.975,3
+1/i-ali|gd|1024,"One-layer linear attention, λ ∝ 1/i",SGD,1024,1.804,1.619,1.905,3
+1/i-ali|muon|16,"One-layer linear attention, λ ∝ 1/i",Muon,16,0.659,0.521,0.68,3
+1/i-ali|muon|64,"One-layer linear attention, λ ∝ 1/i",Muon,64,0.32,0.3,0.34,3
+1/i-ali|muon|256,"One-layer linear attention, λ ∝ 1/i",Muon,256,0.253,0.221,0.28,3
+1/i-ali|muon|1024,"One-layer linear attention, λ ∝ 1/i",Muon,1024,0.262,0.262,0.27,3
+1/i-ali|muon_exact|16,"One-layer linear attention, λ ∝ 1/i",Muon (exact),16,0.548,0.531,0.615,3
+1/i-ali|muon_exact|64,"One-layer linear attention, λ ∝ 1/i",Muon (exact),64,0.345,0.333,0.382,3
+1/i-ali|muon_exact|256,"One-layer linear attention, λ ∝ 1/i",Muon (exact),256,0.27,0.269,0.322,3
+1/i-ali|muon_exact|1024,"One-layer linear attention, λ ∝ 1/i",Muon (exact),1024,0.234,0.231,0.241,3
+gpt2|muon|16,"GPT-2, original layout, λ ∝ 1/i²",Muon,16,0.453,0.453,0.453,1
+gpt2|muon|64,"GPT-2, original layout, λ ∝ 1/i²",Muon,64,0.377,0.334,0.378,3
+gpt2|muon|256,"GPT-2, original layout, λ ∝ 1/i²",Muon,256,0.252,0.252,0.252,1

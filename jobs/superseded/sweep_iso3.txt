@@ -1,0 +1,2 @@
+--opt muon --lr 0.0025 --aux_lr 1e-3 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/muon_lr0.0025_iso.json
+--opt muon --lr 0.001 --aux_lr 1e-3 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/muon_lr0.001_iso.json

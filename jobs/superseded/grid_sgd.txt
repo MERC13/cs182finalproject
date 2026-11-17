@@ -1,0 +1,1 @@
+--opt sgd --lr 0.1 --clip 1.0 --cond iso --steps 10000 --y_mode sep --readin_init gauss --save_model --eval_every 100 --qshift_every 500 --out runs/grid/sgd_iso_s0.json

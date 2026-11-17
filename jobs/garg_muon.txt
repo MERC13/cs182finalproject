@@ -1,0 +1,1 @@
+--opt muon --lr 0.005 --cond iso --y_mode garg --curriculum garg --cur_interval 1000 --steps 10000 --light_eval --eval_every 200 --qshift_every 100000 --save_model --ckpt_every 5000 --out runs/repro/garg_muon0.005_cur_s0.json

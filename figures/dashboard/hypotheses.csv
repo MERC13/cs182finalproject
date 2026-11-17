@@ -1,0 +1,8 @@
+id,hypothesis,finding,status
+H1,Muon reaches low error on unseen tasks sooner,Confirmed: faster to converge on every input covariance tested,Confirmed
+H2,Skewed inputs slow SGD more than Muon,Confirmed for AdamW (the weakest direction arrives much later); SGD could not be trained in the original GPT-2,Confirmed for AdamW
+H3,Muon handles queries on low-variance directions better,Confirmed: lower shifted-query error at matched in-distribution error,Confirmed
+H4,"SGD runs PCR on a growing set of directions, Muon a ridge-like estimator","Revised: the staircase belongs to AdamW; Muon learns in the same order, compressed",Revised
+Rot,Rotating the input covariance changes Adam's learning,"No effect in the GPT-2 at batch 64 or 256, even with an identity read-in; large in one-layer linear attention","Null in the GPT-2, dropped"
+SGD,SGD can be compared with AdamW and Muon in the GPT-2,Never trained in the original GPT-2; trains with concatenated tokens and a larger hidden initialisation,Fixed by redesign
+Trans,Muon is the most transient (follow-up),Not supported: both follow the same path from ridge to memorisation; Muon is faster,Not supported

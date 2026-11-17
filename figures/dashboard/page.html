@@ -1,0 +1,684 @@
+<meta name="dash-one-writer">
+<style>
+  /* One reading column of sections; charts sit in cards, two to a row when there is room. */
+  .oic { display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  .oic h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.15; margin: 0; text-wrap: balance; }
+  .oic h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium, 500); margin: 0; text-wrap: balance; }
+  .oic h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium, 500); margin: 0; text-wrap: balance; }
+  .oic p { margin: 0; max-width: 74ch; line-height: 1.55; }
+  .oic .oic-b { font-weight: var(--cds-font-weight-medium, 500); font-variant-numeric: tabular-nums; }
+  .oic .lede { color: var(--color-fg-muted); }
+  .oic header, .oic section { display: grid; gap: var(--cds-gap-md); }
+  .oic .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md); }
+  .oic .tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); align-content: start; }
+  .oic .tile .lab { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .oic .tile .big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .oic .tile .big .sep { color: var(--color-fg-muted); }
+  .oic .tile .sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+  .oic nav.toc { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); }
+  .oic nav.toc button { background: none; border: 0; padding: 0; font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .oic nav.toc button:hover, .oic nav.toc button:focus-visible { color: var(--color-fg); }
+  .oic .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+  .oic .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md); }
+  .oic .card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
+  .oic .note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; max-width: none; }
+  .oic .chart { position: relative; min-height: 280px; }
+  .oic .chart.sm { min-height: 220px; }
+  .oic .chart.tall { min-height: 340px; }
+  .oic .tip { position: absolute; pointer-events: none; z-index: 2; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .oic .tip[hidden] { display: none; }
+  .oic .tip .tip-h { color: var(--cds-text-secondary, var(--color-fg-muted)); }
+  .oic .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--cds-gap-md); }
+  .oic .tablebox { overflow-x: auto; }
+  .oic table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); }
+  .oic th, .oic td { text-align: left; vertical-align: top; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); line-height: 1.45; }
+  .oic th { font-weight: var(--cds-font-weight-medium, 500); color: var(--color-fg-muted); white-space: nowrap; }
+  .oic td.num, .oic th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .oic td.verdict { white-space: nowrap; }
+  .oic td.verdict::before { content: ""; display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; margin-right: .4rem; background: var(--cds-chart-muted); vertical-align: middle; }
+  .oic td.verdict.good::before { background: var(--color-ok, #3f8f5a); }
+  .oic td.verdict.mixed::before { background: var(--color-warn, #c9962b); }
+  .oic td.verdict.bad::before { background: var(--color-bad, #c4473a); }
+  .oic .control { display: flex; align-items: center; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .oic details { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-sm); }
+  .oic details > summary { cursor: pointer; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .oic details[open] > summary { margin-bottom: var(--cds-gap-sm); }
+  .oic dl { display: grid; grid-template-columns: minmax(8rem, max-content) 1fr; gap: var(--cds-gap-xs) var(--cds-gap-md); margin: 0; font-size: var(--cds-font-size-caption); }
+  .oic dt { font-weight: var(--cds-font-weight-medium, 500); }
+  .oic dd { margin: 0; color: var(--color-fg-muted); line-height: 1.45; }
+  .oic ul { margin: 0; padding-left: 1.1rem; display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow, .3s); }
+  @media (max-width: 30rem) { .oic dl { grid-template-columns: 1fr; } }
+</style>
+
+<div class="oic">
+  <header id="top">
+    <h1>Optimizers in in-context learning</h1>
+    <p class="lede">The optimizer changes what a transformer's in-context learner learns, not only how fast. At the same in-distribution error, Muon holds a ridge-shaped predictor while SGD and Adam hold PCR-shaped ones, and that shape decides how well the model handles queries along low-variance directions.</p>
+    <div class="tiles">
+      <div class="tile">
+        <span class="lab">Muon's convergence speed-up over AdamW</span>
+        <span class="big"><span data-draw="v" data-source="facts" data-field="value" data-where="key=speedup_ani">—</span></span>
+        <span class="sub">GPT-2, skewed inputs (λ ∝ 1/i²); <span data-draw="v" data-source="facts" data-field="value" data-where="key=speedup_iso">—</span> on isotropic inputs</span>
+      </div>
+      <div class="tile">
+        <span class="lab">Lower shifted-query error with Muon</span>
+        <span class="big"><span data-draw="v" data-source="facts" data-field="value" data-where="key=h3_ratio_001">—</span></span>
+        <span class="sub">GPT-2, λ ∝ 1/i²: AdamW ÷ Muon at matched in-distribution error 0.01; <span data-draw="v" data-source="facts" data-field="value" data-where="key=h3_ratio_003">—</span> at 0.03</span>
+      </div>
+      <div class="tile">
+        <span class="lab">Learning-order exponent β, redesigned GPT-2</span>
+        <span class="big"><span data-draw="v" data-source="facts" data-field="value" data-where="key=beta044_sgd">—</span><span class="sep"> · </span><span data-draw="v" data-source="facts" data-field="value" data-where="key=beta044_adamw">—</span><span class="sep"> · </span><span data-draw="v" data-source="facts" data-field="value" data-where="key=beta044_muon">—</span></span>
+        <span class="sub">SGD · AdamW · Muon. Higher means one direction at a time</span>
+      </div>
+      <div class="tile">
+        <span class="lab">Lower shifted-query loss with exact Muon than Adam</span>
+        <span class="big"><span data-draw="v" data-source="facts" data-field="value" data-where="key=ood_ratio_i">—</span></span>
+        <span class="sub">One-layer linear attention, λ ∝ 1/i, batch 1,024, at matched in-distribution error; <span data-draw="v" data-source="facts" data-field="value" data-where="key=ood_ratio_i2">—</span> under λ ∝ 1/i²</span>
+      </div>
+    </div>
+    <nav class="toc" aria-label="Sections">
+      <button type="button" data-target="setup">Setup and checks</button>
+      <button type="button" data-target="hypotheses">Original hypotheses</button>
+      <button type="button" data-target="sgd">Why SGD failed</button>
+      <button type="button" data-target="rotation">Rotation</button>
+      <button type="button" data-target="transience">Transience</button>
+      <button type="button" data-target="noise">Gradient noise</button>
+      <button type="button" data-target="predictor">Optimizer and predictor</button>
+      <button type="button" data-target="next">Next steps</button>
+    </nav>
+  </header>
+
+  <section id="setup">
+    <h2>Setup and checks</h2>
+    <p>Each prompt is a sequence of points (x, wᵀx) with x in 8 dimensions and a fresh task w; the model predicts each y from the points before it, with up to 32 in context. Input covariances have eigenvalues λ_i ∝ 1, 1/i or 1/i², so some directions carry far less signal than others. We trained a small GPT-2 (4 layers, 4 heads, width 128) as in Garg et al. (2022), and one-layer linear attention, with SGD, AdamW (Adam in the linear model; SignGD there too) and Muon, each at a tuned learning rate.</p>
+    <p>Before testing anything new, the code reproduced the published results the hypotheses rest on.</p>
+    <div class="card">
+      <h3>Reproduced results</h3>
+      <div class="tablebox">
+        <table data-source="reproductions" data-row-key="paper">
+          <thead><tr><th data-field="paper">Paper</th><th data-field="claim">Claim tested</th><th data-field="result">Our result</th><th data-field="verdict">Reproduced</th></tr></thead>
+          <tbody data-draw="tbl-repro"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="hypotheses">
+    <h2>The original hypotheses</h2>
+    <p>Muon converged <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=speedup_iso">—</b> sooner than AdamW on isotropic inputs and <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=speedup_ani">—</b> sooner under λ ∝ 1/i² (<b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=conv_ani_muon">—</b> vs <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=conv_ani_adamw">—</b> steps). Under that skew AdamW learned its weakest direction at step <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=weak_ani_adamw">—</b>, Muon at step <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=weak_ani_muon">—</b>.</p>
+    <div class="card">
+      <h3>Verdicts</h3>
+      <div class="tablebox">
+        <table data-source="hypotheses" data-row-key="id">
+          <thead><tr><th data-field="id"></th><th data-field="hypothesis">Hypothesis</th><th data-field="finding">What we found</th><th data-field="status">Verdict</th></tr></thead>
+          <tbody data-draw="tbl-hyp"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>AdamW learns one direction at a time; Muon compresses the staircase</h3>
+      <p class="note">Step at which each input direction is learned (probe error below 0.5) in the original GPT-2, λ ∝ 1/i² aligned, three seeds each. Direction 1 has the most input variance. Log scale. One AdamW seed never learned directions 7 and 8, so its line stops at 6.</p>
+      <div class="chart" data-draw="stair" data-setting="Original GPT-2" data-source="axis_times"></div>
+    </div>
+  </section>
+
+  <section id="sgd">
+    <h2>Why SGD could not train the GPT-2</h2>
+    <p>On the starting plateau one learning rate cannot serve every layer. With SGD at learning rate 0.1, a step would change the read-out by <b class="oic-b" data-draw="v" data-source="sgd_blocks" data-field="sgd_change" data-where="block=Read-out" data-fmt="pct">—</b> of its size but the query weights by only <b class="oic-b" data-draw="v" data-source="sgd_blocks" data-field="sgd_change" data-where="block=Query" data-fmt="pct">—</b>: any rate that moves the attention is far too large for the read-out. AdamW and Muon change every hidden layer by comparable amounts (table below). The gradient inside each matrix also points almost entirely one way, so even SGD normalised to Muon's step size per matrix stayed stuck.</p>
+    <div class="card">
+      <h3>Gradients on the plateau, by layer</h3>
+      <p class="note">Original GPT-2 at initialisation, isotropic inputs; mean gradient over 16 batches of 64 prompts. Change per step is the update's estimated size relative to the weights: SGD at learning rate 0.1 with momentum 0.9 (steady state), AdamW at 5×10⁻⁴ (about the learning rate per weight), Muon at 0.005 with AdamW at 10⁻³ on the read-in and read-out.</p>
+      <div class="tablebox">
+        <table data-source="sgd_blocks" data-row-key="block">
+          <thead><tr><th data-field="block">Layer</th><th class="num" data-field="share">Share of squared gradient</th><th class="num" data-field="rms_grad">Gradient per weight</th><th class="num" data-field="sgd_change">Change per step, SGD</th><th class="num" data-field="adamw_change">AdamW</th><th class="num" data-field="muon_change">Muon</th></tr></thead>
+          <tbody data-draw="tbl-blocks"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>SGD trains only with both changes</h3>
+      <p class="note">Mean in-context error on isotropic inputs (1 means predicting zero), SGD at learning rate 0.1 with clipping. Concatenated tokens put each (x, y) pair in one token; init is the standard deviation of the hidden weights (GPT-2 uses 0.02). AdamW shown for reference.</p>
+      <div class="chart" data-draw="rescue" data-source="sgd_rescue"></div>
+    </div>
+    <p>With separate x and y tokens the model must first copy each x into its y token, and GPT-2's small initial weights starve that circuit of gradient. Concatenated tokens remove the copy step and a larger initialisation lets the gradient through; either change alone leaves SGD stuck.</p>
+  </section>
+
+  <section id="rotation">
+    <h2>Rotating the inputs</h2>
+    <p>In the GPT-2, AdamW converged at <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=conv_ani_adamw">—</b> steps with aligned inputs and <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=conv_rot_adamw">—</b> with rotated ones, inside the seed spread. The null held at batch 256 and with an identity read-in. Rotating the inputs only re-mixes the weights that feed each read-in neuron, a rotation Adam tolerates in transformers (Zhang, Maes et al. 2024). In one-layer linear attention the inputs reach the attention weights directly, and there rotation costs Adam more the larger the batch.</p>
+    <div class="card">
+      <h3>Adam's penalty for rotated inputs grows with batch size</h3>
+      <p class="note">One-layer linear attention, λ ∝ 1/i²: steps to converge with rotated inputs ÷ steps with aligned inputs, median of three seeds at a tuned learning rate. "Exact" uses the full population gradient. Adam at batch 16 with rotated inputs did not converge within the run, so it has no point.</p>
+      <div class="chart" data-draw="rot" data-source="rotation_testbed"></div>
+    </div>
+  </section>
+
+  <section id="transience">
+    <h2>Transience: is Muon's in-context learning more short-lived?</h2>
+    <p>With a finite pool of training tasks, a model can stop doing in-context regression and memorise the tasks instead. Both optimizers did so with 16 and 32 tasks. With 32 tasks Muon's in-context learning faded at step <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=fade_m32_muon">—</b> and AdamW's at <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=fade_m32_adamw">—</b>, but Muon reaches every milestone sooner, so this is speed, not a different path.</p>
+    <div class="grid4">
+      <div class="card"><h3>16 training tasks</h3><div class="chart sm" data-draw="trans" data-m="16" data-source="transience_curves"></div></div>
+      <div class="card"><h3>32 training tasks</h3><div class="chart sm" data-draw="trans" data-m="32" data-source="transience_curves"></div></div>
+      <div class="card"><h3>64 training tasks</h3><div class="chart sm" data-draw="trans" data-m="64" data-source="transience_curves"></div></div>
+      <div class="card"><h3>256 training tasks</h3><div class="chart sm" data-draw="trans" data-m="256" data-source="transience_curves"></div></div>
+    </div>
+    <p class="note">ICL score on unseen tasks: 1 matches ridge regression, which generalises; 0 matches the estimator that only knows the training tasks. Original GPT-2, isotropic inputs, label noise σ = 0.5, batch 64. Smoothed over five checkpoints, log steps; three seeds with 16 and 32 tasks, one with 64 and 256.</p>
+    <div class="card">
+      <h3>Matched on training loss, Muon is not more transient than AdamW</h3>
+      <p class="note">ICL score when each run first reaches a given memorisation score m, a normalised training loss (0 = ridge-level fit to the training tasks, 1 = memorised; below 0 is earlier in training). Muon is ahead early and level once memorisation sets in. Dots are means over seeds, bars the seed range; the m = 0.75 row and the 64- and 256-task rows have one seed.</p>
+      <div class="chart tall" data-draw="dumb" data-source="transience_matched"></div>
+    </div>
+    <details>
+      <summary>Pre-registered timing, per run</summary>
+      <p class="note">Emerge: first checkpoint with ICL score ≥ 0.5. Fade: first checkpoint after the peak below 0.5. The criterion fixed in advance was fade ÷ emerge, so each optimizer is compared with its own clock.</p>
+      <div class="tablebox">
+        <table data-source="transience_timing" data-row-key="run">
+          <thead><tr><th class="num" data-field="M">Tasks</th><th data-field="opt">Optimizer</th><th class="num" data-field="seed">Seed</th><th class="num" data-field="steps">Steps run</th><th class="num" data-field="emerge">Emerge</th><th class="num" data-field="peak_icl">Peak ICL score</th><th class="num" data-field="fade">Fade</th><th class="num" data-field="memorised">Memorised</th><th class="num" data-field="fade_over_emerge">Fade ÷ emerge</th></tr></thead>
+          <tbody data-draw="tbl-timing"></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section id="noise">
+    <h2>Gradient noise</h2>
+    <p>Small batches make Muon learn directions more one at a time, as Jacobs and Burkholz (2026) predict. The learning-order exponent β measures this: the time to learn direction j scales as λ_j<sup>−β</sup>, so β = 0 means every direction at once and larger β means a steeper staircase. In one-layer linear attention under λ ∝ 1/i², Muon's β rises from <b class="oic-b" data-draw="v" data-source="beta_noise" data-field="beta" data-where="run=1/i2-ali|muon|1024" data-fmt="f2">—</b> at batch 1,024 to <b class="oic-b" data-draw="v" data-source="beta_noise" data-field="beta" data-where="run=1/i2-ali|muon|16" data-fmt="f2">—</b> at batch 16; in the GPT-2 from <b class="oic-b" data-draw="v" data-source="beta_noise" data-field="beta" data-where="run=gpt2|muon|256" data-fmt="f2">—</b> at batch 256 to <b class="oic-b" data-draw="v" data-source="beta_noise" data-field="beta" data-where="run=gpt2|muon|16" data-fmt="f2">—</b> at batch 16. Adam's β also rises at small batch; SGD's moves the other way.</p>
+    <div class="grid3">
+      <div class="card">
+        <h3>One-layer linear attention, λ ∝ 1/i²</h3>
+        <p class="note">Aligned. Median of three seeds (two in some SGD cells) at each batch size's own tuned learning rate; bars show the seed range.</p>
+        <div class="chart" data-draw="noise" data-model="One-layer linear attention, λ ∝ 1/i²" data-source="beta_noise"></div>
+      </div>
+      <div class="card">
+        <h3>One-layer linear attention, λ ∝ 1/i</h3>
+        <p class="note">Aligned. Median of three seeds at each batch size's own tuned learning rate; bars show the seed range.</p>
+        <div class="chart" data-draw="noise" data-model="One-layer linear attention, λ ∝ 1/i" data-source="beta_noise"></div>
+      </div>
+      <div class="card">
+        <h3>Muon in the GPT-2</h3>
+        <p class="note">Original layout, λ ∝ 1/i², aligned. Three seeds at batch 64 (bar = range), one each at 16 and 256.</p>
+        <div class="chart" data-draw="noise" data-model="GPT-2, original layout, λ ∝ 1/i²" data-source="beta_noise"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="predictor">
+    <h2>The optimizer changes the in-context predictor</h2>
+    <p>Compared at the same in-distribution error, the optimizers have not learned the same thing. SGD and Adam hold a PCR-shaped predictor: the strong directions in full and the weak ones not at all. Muon holds a more ridge-shaped one, with more directions partly learned; with an exact orthogonalisation, every direction is. Queries that load the weak directions expose the difference.</p>
+    <div class="control"><label for="gain-batch">Batch size</label><select id="gain-batch" class="dash-select" aria-label="Batch size" data-draw="gain-batch" data-source="gain_profiles"></select></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Shape of the predictor, λ ∝ 1/i²</h3>
+        <div class="chart" data-draw="gain" data-spectrum="λ ∝ 1/i²" data-source="gain_profiles"></div>
+      </div>
+      <div class="card">
+        <h3>Shape of the predictor, λ ∝ 1/i</h3>
+        <div class="chart" data-draw="gain" data-spectrum="λ ∝ 1/i" data-source="gain_profiles"></div>
+      </div>
+    </div>
+    <p class="note">One-layer linear attention. Fraction of each direction's optimal gain learned when the in-distribution excess loss first reaches 0.1, median of the seeds that reach it (SGD at batch 16 under λ ∝ 1/i never does). Direction 1 has the most input variance. Muon (exact) replaces Muon's five Newton–Schulz steps with an exact orthogonalisation.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>Shifted-query loss, λ ∝ 1/i²</h3>
+        <div class="chart" data-draw="ood" data-spectrum="λ ∝ 1/i²" data-source="ood_matched"></div>
+      </div>
+      <div class="card">
+        <h3>Shifted-query loss, λ ∝ 1/i</h3>
+        <div class="chart" data-draw="ood" data-spectrum="λ ∝ 1/i" data-source="ood_matched"></div>
+      </div>
+    </div>
+    <p class="note">Loss on queries moved onto the low-variance directions, above the best converged value, when the in-distribution excess loss first reaches <span data-draw="ood-level">—</span>. Lower is better. Dots are medians of the seeds that reach that error (hover for how many of three), bars the range. Under λ ∝ 1/i², SGD reaches it in only one run.</p>
+    <p>Adam's learning order shifts with batch size, but its shifted-query loss barely moves. Muon's advantage is largest at the largest batch: at batch 1,024, Adam's excess loss is <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=ood_ratio_i">—</b> that of Muon with exact orthogonalisation under λ ∝ 1/i, and <b class="oic-b" data-draw="v" data-source="facts" data-field="value" data-where="key=ood_ratio_i2">—</b> under λ ∝ 1/i².</p>
+    <h3>In the GPT-2</h3>
+    <p>In the GPT-2 the difference depends on the initialisation. At GPT-2's standard initialisation (0.02), Muon is ahead of AdamW on the weakest directions, but SGD cannot train. At 0.088 SGD trains, but the three optimizers' profiles overlap. At 0.044 all three train, and Muon is still ahead on the weakest directions.</p>
+    <div class="grid4">
+      <div class="card"><h3>Original GPT-2</h3><div class="chart sm" data-draw="prof" data-setting="Original GPT-2" data-source="gpt2_profiles"></div></div>
+      <div class="card"><h3>Concatenated tokens, init 0.02</h3><div class="chart sm" data-draw="prof" data-setting="Concatenated tokens, init 0.02" data-source="gpt2_profiles"></div></div>
+      <div class="card"><h3>Concatenated tokens, init 0.044</h3><div class="chart sm" data-draw="prof" data-setting="Concatenated tokens, init 0.044" data-source="gpt2_profiles"></div></div>
+      <div class="card"><h3>Concatenated tokens, init 0.088</h3><div class="chart sm" data-draw="prof" data-setting="Concatenated tokens, init 0.088" data-source="gpt2_profiles"></div></div>
+    </div>
+    <p class="note">Fraction of each direction learned (1 − probe error) when in-distribution error at 32 examples first reaches 0.03; λ ∝ 1/i² aligned, one line per seed. Below zero is worse than predicting nothing along that direction.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>Learning-order exponent by setting</h3>
+        <p class="note">One dot per seed, λ ∝ 1/i² aligned, batch 64. SGD does not train in the first two settings.</p>
+        <div class="chart" data-draw="betaset" data-source="beta_runs"></div>
+      </div>
+      <div class="card">
+        <h3>Learning order with concatenated tokens and init 0.044</h3>
+        <p class="note">Step at which each direction is learned, two seeds per optimizer. Log scale.</p>
+        <div class="chart" data-draw="stair" data-setting="Concatenated tokens, init 0.044" data-source="axis_times"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="next">
+    <h2>Where this leaves the project</h2>
+    <p>Study one variable, the optimizer, and one question: does it change which in-context algorithm the transformer learns? Use one-layer linear attention, where losses are exact and theory exists, and the GPT-2 with concatenated tokens at initialisation 0.044, where SGD, AdamW and Muon all train. Read out each direction's learned fraction and the shifted-query error at matched in-distribution error. Hold the batch size at a large value, where the difference is clearest, and drop the rotation arm.</p>
+    <details>
+      <summary>Caveats</summary>
+      <ul>
+        <li>CPU-scale runs: a 0.8M-parameter GPT-2 and a one-layer model, a few thousand steps each.</li>
+        <li>Few seeds: three in most cells, two in the redesigned GPT-2, one in some batch-size and transience cells.</li>
+        <li>One tuned learning rate per optimizer and setting, at a constant schedule. Part of the small-batch effect on Muon is parameter jitter rather than learning order.</li>
+        <li>In one-layer linear attention every optimizer ends at the same predictor; the differences shown are along the way, which is why they are compared at matched in-distribution error.</li>
+      </ul>
+    </details>
+    <details>
+      <summary>Definitions</summary>
+      <dl>
+        <dt>Learning-order exponent β</dt><dd>Slope of log(step at which direction j is learned) against log(1/λ_j). Zero means every direction at once.</dd>
+        <dt>Muon (exact)</dt><dd>Muon with an exact orthogonalisation of each update (the polar factor) instead of five Newton–Schulz steps. "No momentum" variants drop Muon's momentum.</dd>
+        <dt>SignGD</dt><dd>Gradient descent on the sign of each gradient entry: Adam without its running averages.</dd>
+        <dt>PCR-shaped predictor</dt><dd>Strong directions fully learned and weak ones not at all, like principal-component regression on the top directions.</dd>
+        <dt>Ridge-shaped predictor</dt><dd>Every direction partly learned, shrinking the weak ones most, like ridge regression.</dd>
+        <dt>Shifted-query loss</dt><dd>Error when the query's variance moves onto the directions that had least variance in training, at constant total variance.</dd>
+        <dt>ICL score</dt><dd>1 when the model's error on unseen tasks matches ridge regression, 0 when it matches the estimator that only knows the training tasks.</dd>
+        <dt>Memorisation score m</dt><dd>0 at ridge-level error on the training tasks, 1 at the memorising estimator's error; it is a normalised training loss.</dd>
+      </dl>
+    </details>
+  </section>
+</div>
+
+<script>
+(() => {
+  const num = (v) => (v === '' || v === null || v === undefined ? null : +v);
+  const fInt = d3.format(','), f1 = d3.format('.1f'), f2 = d3.format('.2f'), f3 = d3.format('.3f');
+  const pct = (v) => { const p = v * 100; return (p >= 10 ? fInt(Math.round(p)) : p >= 1 ? p.toFixed(1) : p.toPrecision(2)) + '%'; };
+  const SUP = { '-': '⁻', 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+  const sci = (v) => { if (v >= 0.001) return v.toPrecision(2); const e = Math.floor(Math.log10(v)); return `${(v / 10 ** e).toFixed(1)}×10${String(e).replace(/./g, (c) => SUP[c])}`; };
+  const FMT = { int: (v) => fInt(Math.round(v)), x1: (v) => f1(v) + '×', f2: (v) => f2(v), pct, sci };
+  const OPT_ORDER = ['SGD', 'Adam', 'AdamW', 'SignGD', 'Muon', 'Muon (exact)', 'Muon (no momentum)', 'Muon (exact, no momentum)'];
+  const colorOf = (name) => {
+    const c = dash.colors;
+    if (name.startsWith('Muon')) return c[0];
+    if (name.startsWith('Adam')) return c[1];
+    if (name === 'SGD') return c[2];
+    if (name === 'SignGD') return c[3];
+    return 'var(--cds-chart-muted)';
+  };
+  const dashOf = (name) => ({ 'Muon (exact)': '6 3', 'Muon (no momentum)': '2 3', 'Muon (exact, no momentum)': '6 3 2 3' })[name] || null;
+  const byOpt = (a, b) => OPT_ORDER.indexOf(a) - OPT_ORDER.indexOf(b);
+  const matches = (r, where) => { for (const [k, v] of new URLSearchParams(where || '')) if (String(r[k]) !== v) return false; return true; };
+  const ctx2d = document.createElement('canvas').getContext('2d');
+  const tw = (s, px = 11) => { ctx2d.font = `${px}px system-ui, -apple-system, Segoe UI, sans-serif`; return ctx2d.measureText(String(s)).width; };
+
+  // Until every source is "ok" a chart holds only the dash; the type shows loading and error states on it.
+  function ready(el, ...ids) {
+    if (ids.every((id) => dash.data(id).status === 'ok')) return true;
+    el.textContent = '—';
+    return false;
+  }
+  const OOD_LEVEL = '0.05';  // in-distribution excess loss at which shifted-query loss is compared
+
+  // Shared line / dot chart with a wrapped legend, gridlines, reference lines, seed-range bars and a hover card.
+  function lineChart(el, o) {
+    const W = Math.max(240, Math.round(el.clientWidth || 640)), H = o.h || 280, fs = 11;
+    const legend = o.legend || [];
+    let lx = 0, ly = 0;
+    const legPos = legend.map((it) => { const w = 22 + tw(it.name, fs) + 16; if (lx + w > W && lx > 0) { lx = 0; ly += 18; } const p = { ...it, x: lx, y: ly }; lx += w; return p; });
+    const legH = legend.length ? ly + 24 : 0;
+    const yS = (o.y.type === 'log' ? d3.scaleLog() : d3.scaleLinear()).domain(o.y.domain).clamp(true);
+    const yTicks = o.y.ticks || yS.ticks(o.y.n || 5);
+    const yFmt = o.y.fmt || ((v) => String(v));
+    const left = Math.ceil(d3.max(yTicks, (t) => tw(yFmt(t), fs)) || 16) + 10;
+    const right = o.right ?? 14;
+    const top = legH + (o.y.label ? 20 : 8);
+    const bottom = 20 + (o.x.label ? 18 : 0);
+    yS.range([H - bottom, top]);
+    const xS = o.x.type === 'point'
+      ? d3.scalePoint().domain(o.x.domain).range([left, W - right]).padding(o.x.pad ?? 0.4)
+      : (o.x.type === 'log' ? d3.scaleLog() : d3.scaleLinear()).domain(o.x.domain).range([left, W - right]).clamp(true);
+    let xTicks = o.x.ticks || (o.x.type === 'point' ? o.x.domain : xS.ticks(o.x.n || 6));
+    const xFmt = o.x.fmt || ((v) => String(v));
+    const span = (W - left - right) / Math.max(1, xTicks.length - 1);
+    const widest = d3.max(xTicks, (t) => tw(xFmt(t), fs)) || 0;
+    if (xTicks.length > 2 && widest + 8 > span) { const k = Math.ceil((widest + 8) / span); xTicks = xTicks.filter((_, i) => i % k === 0); }
+
+    const svg = d3.create('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+      .attr('aria-label', o.aria || '').attr('font-size', fs).style('display', 'block').style('font-family', 'var(--font-anthropic-sans)');
+    const lg = svg.append('g');
+    for (const it of legPos) {
+      const g = lg.append('g').attr('transform', `translate(${it.x},${it.y + 8})`);
+      if (it.dot) g.append('circle').attr('cx', 8).attr('r', 3.5).attr('fill', it.color);
+      else g.append('line').attr('x1', 0).attr('x2', 16).attr('stroke', it.color).attr('stroke-width', 2).attr('stroke-dasharray', it.dash || null).attr('stroke-linecap', 'butt');
+      g.append('text').attr('x', 22).attr('dy', '0.32em').attr('fill', 'var(--color-fg-muted)').text(it.name);
+    }
+    const gy = svg.append('g');
+    for (const t of yTicks) {
+      gy.append('line').attr('x1', left).attr('x2', W - right).attr('y1', yS(t)).attr('y2', yS(t)).attr('stroke', 'var(--cds-chart-grid)');
+      gy.append('text').attr('x', left - 6).attr('y', yS(t)).attr('dy', '0.32em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').text(yFmt(t));
+    }
+    if (o.y.label) svg.append('text').attr('x', left).attr('y', top - 9).attr('fill', 'var(--color-fg-muted)').text(o.y.label);
+    svg.append('line').attr('x1', left).attr('x2', W - right).attr('y1', H - bottom).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-axis)');
+    for (const t of xTicks) svg.append('text').attr('x', xS(t)).attr('y', H - bottom + 14).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').text(xFmt(t));
+    if (o.x.label) svg.append('text').attr('x', (left + W - right) / 2).attr('y', H - 3).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').text(o.x.label);
+    for (const r of o.refs || []) {
+      svg.append('line').attr('x1', left).attr('x2', W - right).attr('y1', yS(r.y)).attr('y2', yS(r.y)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+      if (r.label) svg.append('text').attr('x', W - right).attr('y', yS(r.y) - 4).attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').text(r.label);
+    }
+    const pts = [];
+    const line = d3.line().defined((p) => p.y !== null && Number.isFinite(p.y)).x((p) => xS(p.x) + (p.dx || 0)).y((p) => yS(p.y));
+    for (const s of o.series) {
+      if (s.line !== false) svg.append('path').attr('d', line(s.pts)).attr('fill', 'none').attr('stroke', s.color).attr('stroke-width', s.width || 2)
+        .attr('stroke-dasharray', s.dash || null).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('opacity', s.opacity ?? 1);
+      for (const p of s.pts) {
+        if (p.y === null || !Number.isFinite(p.y)) continue;
+        const cx = xS(p.x) + (p.dx || 0), cy = yS(p.y);
+        if (p.lo !== null && p.hi !== null && p.lo !== undefined && Number.isFinite(p.lo) && Number.isFinite(p.hi) && p.hi > p.lo)
+          svg.append('line').attr('x1', cx).attr('x2', cx).attr('y1', yS(p.lo)).attr('y2', yS(p.hi)).attr('stroke', s.color).attr('stroke-width', 1.5).attr('opacity', 0.75);
+        if (s.r !== 0) svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', s.r ?? 3).attr('fill', s.color).attr('opacity', s.opacity ?? 1);
+        pts.push({ cx, cy, p, s });
+      }
+    }
+    const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true;
+    const ring = svg.append('circle').attr('r', 6).attr('fill', 'none').attr('stroke-width', 2).attr('visibility', 'hidden');
+    svg.append('rect').attr('x', left).attr('y', top).attr('width', Math.max(0, W - left - right)).attr('height', Math.max(0, H - top - bottom)).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [mx, my] = d3.pointer(ev);
+        const best = d3.least(pts, (q) => (q.cx - mx) ** 2 + (q.cy - my) ** 2);
+        if (!best) return;
+        ring.attr('cx', best.cx).attr('cy', best.cy).attr('stroke', best.s.color).attr('visibility', 'visible');
+        tip.replaceChildren(...o.tip(best.p, best.s).map((t, i) => { const d = document.createElement('div'); d.textContent = t; if (i === 0) d.className = 'tip-h'; return d; }));
+        tip.hidden = false;
+        const k = (el.clientWidth || W) / W;
+        let x = best.cx * k + 12;
+        const y = Math.max(0, best.cy * k - 12);
+        if (x + tip.offsetWidth > (el.clientWidth || W)) x = best.cx * k - tip.offsetWidth - 12;
+        tip.style.left = `${Math.max(0, x)}px`; tip.style.top = `${y}px`;
+      })
+      .on('pointerleave', () => { tip.hidden = true; ring.attr('visibility', 'hidden'); });
+    el.replaceChildren(svg.node(), tip);
+  }
+
+  const optLegend = (names) => names.slice().sort(byOpt).map((n) => ({ name: n, color: colorOf(n), dash: dashOf(n) }));
+  const logTicks = (lo, hi) => [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000].filter((t) => t >= lo && t <= hi);
+
+  // Values in sentences and tiles.
+  dash.draw('v', (el) => {
+    const d = dash.data(el.dataset.source);
+    if (d.status !== 'ok') { el.textContent = '—'; return; }
+    const r = d.data.find((row) => matches(row, el.dataset.where));
+    if (!r || num(r[el.dataset.field]) === null) { el.textContent = '—'; return; }
+    const f = FMT[el.dataset.fmt || r.fmt];
+    el.textContent = f ? f(num(r[el.dataset.field])) : String(r[el.dataset.field]);
+  });
+
+  // Tables drawn from rows: words only; the key column shows its value, or the row carries it as data-key.
+  function fillTable(tbody, id, cols, opts = {}) {
+    const d = dash.data(id);
+    if (d.status !== 'ok') { tbody.replaceChildren(); return; }
+    const rows = opts.sort ? d.data.slice().sort(opts.sort) : d.data;
+    tbody.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr');
+      if (opts.key) tr.dataset.key = r[opts.key];
+      for (const c of cols) {
+        const td = document.createElement('td');
+        const f = opts.fmt && opts.fmt[c];
+        const v = r[c];
+        td.textContent = f ? f(v, r) : v;
+        if (opts.num && opts.num.includes(c)) td.className = 'num';
+        if (opts.verdict === c) td.className = 'verdict ' + verdictClass(v);
+        tr.append(td);
+      }
+      return tr;
+    }));
+  }
+  const verdictClass = (v) => (/^(Yes|Confirmed)/.test(v) && !/nuance|for AdamW/.test(v) ? 'good' : /^(Revised|Fixed|Confirmed for|Yes, with)/.test(v) ? 'mixed' : /^(Null|Not)/.test(v) ? 'bad' : '');
+  dash.draw('tbl-repro', (tb) => fillTable(tb, 'reproductions', ['paper', 'claim', 'result', 'verdict'], { verdict: 'verdict' }));
+  dash.draw('tbl-hyp', (tb) => fillTable(tb, 'hypotheses', ['id', 'hypothesis', 'finding', 'status'], { verdict: 'status' }));
+  dash.draw('tbl-blocks', (tb) => fillTable(tb, 'sgd_blocks', ['block', 'share', 'rms_grad', 'sgd_change', 'adamw_change', 'muon_change'], {
+    num: ['share', 'rms_grad', 'sgd_change', 'adamw_change', 'muon_change'],
+    fmt: { share: (v) => pct(+v), rms_grad: (v) => FMT.sci(+v), sgd_change: (v) => pct(+v), adamw_change: (v) => pct(+v), muon_change: (v) => pct(+v) },
+  }));
+  const intOr = (txt) => (v) => (v === '' ? txt : fInt(+v));
+  dash.draw('tbl-timing', (tb) => fillTable(tb, 'transience_timing', ['M', 'opt', 'seed', 'steps', 'emerge', 'peak_icl', 'fade', 'memorised', 'fade_over_emerge'], {
+    key: 'run', num: ['M', 'seed', 'steps', 'emerge', 'peak_icl', 'fade', 'memorised', 'fade_over_emerge'],
+    sort: (a, b) => a.M - b.M || byOpt(a.opt, b.opt) || a.seed - b.seed,
+    fmt: { steps: intOr('–'), emerge: intOr('never'), peak_icl: (v) => (v === '' ? '–' : f2(+v)), fade: (v, r) => (v !== '' ? fInt(+v) : r.emerge === '' ? '–' : 'not within run'), memorised: intOr('not within run'), fade_over_emerge: (v) => (v === '' ? '–' : f1(+v)) },
+  }));
+
+  // Learning order: step at which each direction is learned, one line per run.
+  dash.draw('stair', (el) => {
+    if (!ready(el, 'axis_times')) return;
+    const setting = el.dataset.setting;
+    const rows = dash.data('axis_times').data.filter((r) => r.setting === setting && r.cond === 'aligned');
+    const runs = d3.groups(rows, (r) => r.run);
+    const steps = rows.map((r) => num(r.step)).filter((v) => v !== null && v > 0);
+    const lo = Math.max(10, d3.min(steps) / 1.6), hi = d3.max(steps) * 1.6;
+    lineChart(el, {
+      aria: `Learning order, ${setting}`,
+      legend: optLegend(Array.from(new Set(rows.map((r) => r.opt)))),
+      x: { type: 'point', domain: d3.range(1, 9).map(String), label: 'input direction (1 = most variance)', pad: 0.3 },
+      y: { type: 'log', domain: [lo, hi], ticks: logTicks(lo, hi), fmt: (v) => fInt(v), label: 'step learned' },
+      series: runs.map(([, rs]) => ({ name: rs[0].opt, seed: rs[0].seed, color: colorOf(rs[0].opt), width: 1.5, opacity: 0.85,
+        pts: rs.slice().sort((a, b) => a.direction - b.direction).map((r) => ({ x: String(r.direction), y: num(r.step) })) })),
+      tip: (p, s) => [`${s.name}, seed ${s.seed}`, `Direction ${p.x}: learned at step ${fInt(p.y)}`],
+    });
+  });
+
+  // SGD with and without the two changes.
+  dash.draw('rescue', (el) => {
+    if (!ready(el, 'sgd_rescue')) return;
+    const rows = dash.data('sgd_rescue').data;
+    const greyDash = { 'Separate tokens, standard init': null, 'Concatenated tokens, standard init': '6 3', 'Separate tokens, init 0.088': '2 3' };
+    const groups = d3.groups(rows, (r) => `${r.opt}|${r.config}`);
+    const series = groups.map(([, rs]) => {
+      const o = rs[0].opt, c = rs[0].config, works = o === 'SGD' && c === 'Concatenated tokens, init 0.088';
+      return { name: `${o}, ${c.toLowerCase()}`, color: o === 'AdamW' ? colorOf('AdamW') : works ? colorOf('SGD') : 'var(--cds-chart-muted)',
+        dash: o === 'AdamW' ? '4 3' : works ? null : greyDash[c], r: 0, width: works ? 2.5 : 2,
+        pts: rs.map((r) => ({ x: num(r.step), y: num(r.error) })).sort((a, b) => a.x - b.x) };
+    });
+    series.sort((a, b) => (a.name > b.name ? 1 : -1));
+    lineChart(el, {
+      aria: 'SGD training curves with and without the two changes',
+      legend: series.map((s) => ({ name: s.name, color: s.color, dash: s.dash })),
+      x: { type: 'linear', domain: [0, 3000], fmt: (v) => fInt(v), label: 'training step' },
+      y: { type: 'linear', domain: [0, 1.15], ticks: [0, 0.25, 0.5, 0.75, 1], fmt: (v) => f2(v), label: 'in-context error' },
+      series, tip: (p, s) => [s.name, `Step ${fInt(p.x)}: error ${f3(p.y)}`],
+    });
+  });
+
+  // Rotation cost in the one-layer model.
+  dash.draw('rot', (el) => {
+    if (!ready(el, 'rotation_testbed')) return;
+    const rows = dash.data('rotation_testbed').data;
+    const xs = ['16', '64', '256', '1024', 'exact'];
+    const opts = Array.from(new Set(rows.map((r) => r.opt))).sort(byOpt);
+    lineChart(el, {
+      aria: 'Rotation cost against batch size, one-layer linear attention',
+      legend: optLegend(opts),
+      x: { type: 'point', domain: xs, fmt: (v) => (v === 'exact' ? 'exact' : fInt(+v)), label: 'batch size' },
+      y: { type: 'log', domain: [0.5, 80], ticks: [0.5, 1, 2, 5, 10, 20, 50], fmt: (v) => `${v}×`, label: 'rotated ÷ aligned steps' },
+      refs: [{ y: 1, label: 'no penalty' }],
+      series: opts.map((o) => ({ name: o, color: colorOf(o), pts: xs.map((b) => { const r = rows.find((q) => q.opt === o && q.batch === b); return { x: b, y: r ? num(r.cost) : null, r }; }) })),
+      tip: (p, s) => [`${s.name}, batch ${p.x}`, `${fInt(num(p.r.t_rotated))} vs ${fInt(num(p.r.t_aligned))} steps: ${f1(p.y)}× slower rotated`],
+    });
+  });
+
+  // Transience: ICL score over training, one panel per pool size.
+  dash.draw('trans', (el) => {
+    if (!ready(el, 'transience_curves')) return;
+    const M = el.dataset.m;
+    const rows = dash.data('transience_curves').data.filter((r) => r.M === M);
+    const runs = d3.groups(rows, (r) => `${r.opt}|${r.seed}`);
+    lineChart(el, {
+      aria: `ICL score over training with ${M} training tasks`, h: 220,
+      legend: optLegend(Array.from(new Set(rows.map((r) => r.opt)))),
+      x: { type: 'log', domain: [50, 32000], ticks: [100, 1000, 10000], fmt: (v) => fInt(v), label: 'step' },
+      y: { type: 'linear', domain: [-0.8, 1.05], ticks: [-0.5, 0, 0.5, 1], fmt: (v) => (v === 0 ? '0' : f1(v).replace('-', '−')), label: 'ICL score' },
+      refs: [{ y: 0.5 }],
+      series: runs.map(([, rs]) => ({ name: rs[0].opt, seed: rs[0].seed, color: colorOf(rs[0].opt), width: 1.5, r: 0, opacity: 0.9,
+        pts: rs.map((r) => ({ x: num(r.step), y: num(r.icl), m: num(r.memorisation) })).filter((p) => p.x >= 50).sort((a, b) => a.x - b.x) })),
+      tip: (p, s) => [`${s.name}, seed ${s.seed}`, `Step ${fInt(p.x)}: ICL score ${f2(p.y)}, memorisation ${f2(p.m)}`],
+    });
+  });
+
+  // Transience at matched training loss: AdamW and Muon side by side for each pool size and level.
+  dash.draw('dumb', (el) => {
+    if (!ready(el, 'transience_matched')) return;
+    const rows = dash.data('transience_matched').data.filter((r) => num(r.mean) !== null);
+    const cats = Array.from(new Set(rows.map((r) => `${r.M}|${r.m_level}`)))
+      .sort((a, b) => { const [ma, la] = a.split('|').map(Number), [mb, lb] = b.split('|').map(Number); return ma - mb || la - lb; });
+    const label = (c) => { const [M, l] = c.split('|'); return `${M} tasks, m = ${(+l).toFixed(2).replace(/^-/, '−')}`; };
+    const W = Math.max(240, Math.round(el.clientWidth || 640)), fs = 11, rowH = 22;
+    const left = Math.ceil(d3.max(cats, (c) => tw(label(c), fs))) + 14, right = 16, top = 34, bottom = 36;
+    const H = top + cats.length * rowH + bottom;
+    const xS = d3.scaleLinear().domain([0.1, 1]).range([left, W - right]).clamp(true);
+    const yS = d3.scaleBand().domain(cats).range([top, top + cats.length * rowH]).padding(0.2);
+    const svg = d3.create('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'ICL score at matched training loss')
+      .attr('font-size', fs).style('display', 'block').style('font-family', 'var(--font-anthropic-sans)');
+    let lx = 0;
+    for (const o of ['AdamW', 'Muon']) { const g = svg.append('g').attr('transform', `translate(${lx},8)`); g.append('circle').attr('cx', 6).attr('r', 4).attr('fill', colorOf(o)); g.append('text').attr('x', 16).attr('dy', '0.32em').attr('fill', 'var(--color-fg-muted)').text(o); lx += 26 + tw(o, fs) + 12; }
+    for (const t of [0.2, 0.4, 0.6, 0.8, 1]) {
+      svg.append('line').attr('x1', xS(t)).attr('x2', xS(t)).attr('y1', top - 4).attr('y2', H - bottom).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', xS(t)).attr('y', H - bottom + 14).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').text(f1(t));
+    }
+    svg.append('text').attr('x', (left + W - right) / 2).attr('y', H - 4).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').text('ICL score on unseen tasks');
+    const pts = [];
+    for (const c of cats) {
+      const yc = yS(c) + yS.bandwidth() / 2;
+      svg.append('text').attr('x', left - 10).attr('y', yc).attr('dy', '0.32em').attr('text-anchor', 'end').attr('fill', 'var(--color-fg-muted)').text(label(c));
+      const pair = ['AdamW', 'Muon'].map((o) => rows.find((r) => `${r.M}|${r.m_level}` === c && r.opt === o)).filter(Boolean);
+      if (pair.length === 2) svg.append('line').attr('x1', xS(num(pair[0].mean))).attr('x2', xS(num(pair[1].mean))).attr('y1', yc).attr('y2', yc).attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 2);
+      pair.forEach((r, i) => {
+        const y = yc + (i ? 3 : -3), col = colorOf(r.opt);
+        if (num(r.hi) > num(r.lo)) svg.append('line').attr('x1', xS(num(r.lo))).attr('x2', xS(num(r.hi))).attr('y1', y).attr('y2', y).attr('stroke', col).attr('stroke-width', 1.5).attr('opacity', 0.7);
+        svg.append('circle').attr('cx', xS(num(r.mean))).attr('cy', y).attr('r', 4).attr('fill', col);
+        pts.push({ cx: xS(num(r.mean)), cy: y, r });
+      });
+    }
+    const tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true;
+    svg.append('rect').attr('x', left).attr('y', top).attr('width', W - left - right).attr('height', cats.length * rowH).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [mx, my] = d3.pointer(ev);
+        const b = d3.least(pts, (q) => (q.cx - mx) ** 2 + (q.cy - my) ** 2);
+        if (!b) return;
+        const r = b.r;
+        tip.replaceChildren(...[`${r.opt}, ${label(`${r.M}|${r.m_level}`)}`, `ICL score ${f2(num(r.mean))} (seeds ${f2(num(r.lo))}–${f2(num(r.hi))}, n = ${r.n})`]
+          .map((t, i) => { const d = document.createElement('div'); d.textContent = t; if (!i) d.className = 'tip-h'; return d; }));
+        tip.hidden = false;
+        const k = (el.clientWidth || W) / W;
+        let x = b.cx * k + 12; if (x + tip.offsetWidth > (el.clientWidth || W)) x = b.cx * k - tip.offsetWidth - 12;
+        tip.style.left = `${Math.max(0, x)}px`; tip.style.top = `${Math.max(0, b.cy * k - 12)}px`;
+      })
+      .on('pointerleave', () => { tip.hidden = true; });
+    el.replaceChildren(svg.node(), tip);
+  });
+
+  // Learning-order exponent against batch size.
+  dash.draw('noise', (el) => {
+    if (!ready(el, 'beta_noise')) return;
+    const model = el.dataset.model;
+    const keep = ['SGD', 'Adam', 'SignGD', 'Muon', 'Muon (exact)', 'Muon (no momentum)'];
+    const rows = dash.data('beta_noise').data.filter((r) => r.model === model && keep.includes(r.opt));
+    const xs = Array.from(new Set(rows.map((r) => r.batch))).sort((a, b) => a - b);
+    const opts = Array.from(new Set(rows.map((r) => r.opt))).sort(byOpt);
+    const hi = Math.max(1, d3.max(rows, (r) => num(r.hi) ?? num(r.beta)) * 1.1);
+    lineChart(el, {
+      aria: `Learning-order exponent against batch size, ${model}`,
+      legend: optLegend(opts),
+      x: { type: 'point', domain: xs, fmt: (v) => fInt(+v), label: 'batch size' },
+      y: { type: 'linear', domain: [0, hi], n: 5, fmt: (v) => f1(v), label: 'learning-order exponent β' },
+      series: opts.map((o) => ({ name: o, color: colorOf(o), dash: dashOf(o),
+        pts: xs.map((b) => { const r = rows.find((q) => q.opt === o && q.batch === b); return { x: b, y: r ? num(r.beta) : null, lo: r ? num(r.lo) : null, hi: r ? num(r.hi) : null, n: r ? r.n : 0 }; }) })),
+      tip: (p, s) => [`${s.name}, batch ${fInt(+p.x)}`, `β ${f2(p.y)}` + (p.hi > p.lo ? ` (seeds ${f2(p.lo)}–${f2(p.hi)})` : '') + `, ${p.n} seed${p.n === '1' ? '' : 's'}`],
+    });
+  });
+
+  // Shape of the predictor at matched in-distribution error, at the batch size picked above the charts (largest by default).
+  let gainBatch = null;
+  dash.draw('gain-batch', (sel) => {
+    const g = dash.data('gain_profiles');
+    const bs = g.status === 'ok' ? Array.from(new Set(g.data.map((r) => r.batch))).sort((a, b) => a - b) : [];
+    sel.replaceChildren(...bs.map((b) => new Option(fInt(+b), b)));
+    if (bs.length && !bs.includes(gainBatch)) gainBatch = bs[bs.length - 1];
+    if (gainBatch !== null) sel.value = gainBatch;
+    sel.onchange = () => { gainBatch = sel.value; dash.draw('gain'); };
+  });
+  dash.draw('ood-level', (el) => { el.textContent = OOD_LEVEL; });
+  dash.draw('gain', (el) => {
+    if (!ready(el, 'gain_profiles')) return;
+    const spec = el.dataset.spectrum;
+    if (gainBatch === null) gainBatch = d3.max(dash.data('gain_profiles').data, (r) => +r.batch) + '';
+    const b = gainBatch;
+    const rows = dash.data('gain_profiles').data.filter((r) => r.spectrum === spec && r.batch === b);
+    const opts = Array.from(new Set(rows.map((r) => r.opt))).sort(byOpt);
+    lineChart(el, {
+      aria: `Fraction of each direction learned at matched error, ${spec}`,
+      legend: optLegend(opts),
+      x: { type: 'point', domain: d3.range(1, 9).map(String), label: 'input direction (1 = most variance)', pad: 0.3 },
+      y: { type: 'linear', domain: [-0.1, 1.3], ticks: [0, 0.25, 0.5, 0.75, 1, 1.25], fmt: (v) => f2(v), label: 'fraction of optimal gain' },
+      refs: [{ y: 1, label: 'optimal' }],
+      series: opts.map((o) => ({ name: o, color: colorOf(o), dash: dashOf(o),
+        pts: rows.filter((r) => r.opt === o).sort((a, c) => a.direction - c.direction).map((r) => ({ x: String(r.direction), y: num(r.gain) })) })),
+      tip: (p, s) => [`${s.name}, batch ${fInt(+b)}`, `Direction ${p.x}: ${f2(p.y)} of its optimal gain`],
+    });
+  });
+
+  // Shifted-query loss at matched in-distribution error.
+  dash.draw('ood', (el) => {
+    if (!ready(el, 'ood_matched')) return;
+    const spec = el.dataset.spectrum;
+    const rows = dash.data('ood_matched').data.filter((r) => r.spectrum === spec && r.level === OOD_LEVEL);
+    const xs = Array.from(new Set(rows.map((r) => r.batch))).sort((a, b) => a - b);
+    const opts = Array.from(new Set(rows.map((r) => r.opt))).sort(byOpt);
+    const offs = { SGD: -9, Adam: -3, Muon: 3, 'Muon (exact)': 9 };
+    const hi = d3.max(rows, (r) => num(r.hi) ?? num(r.excess)) * 1.12;
+    lineChart(el, {
+      aria: `Shifted-query loss at matched in-distribution error, ${spec}`,
+      legend: optLegend(opts),
+      x: { type: 'point', domain: xs, fmt: (v) => fInt(+v), label: 'batch size' },
+      y: { type: 'linear', domain: [0, hi], n: 5, fmt: (v) => f2(v), label: 'excess shifted-query loss' },
+      series: opts.map((o) => ({ name: o, color: colorOf(o), dash: dashOf(o),
+        pts: xs.map((b) => { const r = rows.find((q) => q.opt === o && q.batch === b); return { x: b, dx: offs[o] || 0, y: r ? num(r.excess) : null, lo: r ? num(r.lo) : null, hi: r ? num(r.hi) : null, n: r ? r.n : 0 }; }) })),
+      tip: (p, s) => [`${s.name}, batch ${fInt(+p.x)}`, `Excess loss ${f3(p.y)}` + (p.hi > p.lo ? ` (seeds ${f3(p.lo)}–${f3(p.hi)})` : '') + `, ${p.n} of 3 seeds reached the level`],
+    });
+  });
+
+  // GPT-2: fraction of each direction learned at matched error, by setting.
+  dash.draw('prof', (el) => {
+    if (!ready(el, 'gpt2_profiles')) return;
+    const setting = el.dataset.setting;
+    const rows = dash.data('gpt2_profiles').data.filter((r) => r.setting === setting);
+    const runs = d3.groups(rows, (r) => `${r.opt}|${r.seed}`);
+    lineChart(el, {
+      aria: `Fraction of each direction learned at matched error, ${setting}`, h: 220,
+      legend: optLegend(Array.from(new Set(rows.map((r) => r.opt)))),
+      x: { type: 'point', domain: d3.range(1, 9).map(String), label: 'direction', pad: 0.3 },
+      y: { type: 'linear', domain: [-0.6, 1.05], ticks: [-0.5, 0, 0.5, 1], fmt: (v) => (v === 0 ? '0' : f1(v)), label: 'fraction learned' },
+      refs: [{ y: 0 }],
+      series: runs.map(([, rs]) => ({ name: rs[0].opt, seed: rs[0].seed, step: rs[0].step, color: colorOf(rs[0].opt), width: 1.5, r: 2.5,
+        pts: rs.slice().sort((a, b) => a.direction - b.direction).map((r) => ({ x: String(r.direction), y: num(r.learned) })) })),
+      tip: (p, s) => [`${s.name}, seed ${s.seed} (step ${fInt(+s.step)})`, `Direction ${p.x}: ${f2(p.y)} learned`],
+    });
+  });
+
+  // GPT-2: learning-order exponent by setting, one dot per seed.
+  dash.draw('betaset', (el) => {
+    if (!ready(el, 'beta_runs')) return;
+    const rows = dash.data('beta_runs').data.filter((r) => r.cond === 'aligned' && num(r.beta) !== null);
+    const settings = ['Original GPT-2', 'Concatenated tokens, init 0.02', 'Concatenated tokens, init 0.044', 'Concatenated tokens, init 0.088'].filter((s) => rows.some((r) => r.setting === s));
+    const short = { 'Original GPT-2': 'original', 'Concatenated tokens, init 0.02': 'concat., 0.02', 'Concatenated tokens, init 0.044': 'concat., 0.044', 'Concatenated tokens, init 0.088': 'concat., 0.088' };
+    const opts = Array.from(new Set(rows.map((r) => r.opt))).sort(byOpt);
+    const offs = { SGD: -10, AdamW: 0, Muon: 10 };
+    lineChart(el, {
+      aria: 'Learning-order exponent by GPT-2 setting',
+      legend: opts.map((o) => ({ name: o, color: colorOf(o), dot: true })),
+      x: { type: 'point', domain: settings, fmt: (v) => short[v] || v, label: 'GPT-2 setting', pad: 0.5 },
+      y: { type: 'linear', domain: [0, 1.25], ticks: [0, 0.25, 0.5, 0.75, 1, 1.25], fmt: (v) => f2(v), label: 'learning-order exponent β' },
+      series: opts.map((o) => ({ name: o, color: colorOf(o), line: false, r: 4,
+        pts: rows.filter((r) => r.opt === o).map((r) => ({ x: r.setting, dx: offs[o] || 0, y: num(r.beta), seed: r.seed, conv: r.converged })) })),
+      tip: (p, s) => [`${s.name}, ${short[p.x] || p.x}, seed ${p.seed}`, `β ${f2(p.y)}` + (p.conv ? `, converged at step ${fInt(+p.conv)}` : ', did not converge within the run')],
+    });
+  });
+
+  // Section links.
+  const go = (el) => { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); if (typeof dash.setLink === 'function') dash.setLink(el.id); };
+  for (const b of document.querySelectorAll('.oic nav.toc button')) b.addEventListener('click', () => { const t = document.getElementById(b.dataset.target); if (t) go(t); });
+  const named = location.hash ? document.getElementById(location.hash.slice(1)) : null;
+  if (named) requestAnimationFrame(() => named.scrollIntoView());
+})();
+</script>

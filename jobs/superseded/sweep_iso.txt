@@ -1,0 +1,6 @@
+--opt muon --lr 0.01 --aux_lr 1e-3 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/muon_lr0.01_iso.json
+--opt muon --lr 0.02 --aux_lr 1e-3 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/muon_lr0.02_iso.json
+--opt sgd --lr 0.03 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/sgd_lr0.03_iso.json
+--opt adamw --lr 3e-4 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/adamw_lr3e-4_iso.json
+--opt muon --lr 0.005 --aux_lr 1e-3 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/muon_lr0.005_iso.json
+--opt sgd --lr 0.01 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/sgd_lr0.01_iso.json

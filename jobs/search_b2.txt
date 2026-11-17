@@ -1,0 +1,24 @@
+--opt adamw --lr 1e-4 --cond iso --y_mode garg --curriculum garg --cur_interval 1000 --steps 20000 --light_eval --eval_every 200 --qshift_every 100000 --save_model --ckpt_every 5000 --out runs/repro/garg_adam1e-4_cur_s0.json
+--opt adamw --lr 1e-4 --cond iso --y_mode garg --steps 20000 --light_eval --eval_every 200 --qshift_every 100000 --save_model --ckpt_every 5000 --out runs/repro/garg_adam1e-4_nocur_s0.json
+--opt muon --lr 0.002 --cond 1/i2-ali --steps 3000 --y_mode sep --readin_init gauss --eval_every 100 --qshift_every 1000 --out runs/search/muon_lr0.002_1i2-ali_s0.json
+--opt muon --lr 0.003 --cond 1/i2-ali --steps 3000 --y_mode sep --readin_init gauss --eval_every 100 --qshift_every 1000 --out runs/search/muon_lr0.003_1i2-ali_s0.json
+--opt muon --lr 0.007 --cond 1/i2-ali --steps 3000 --y_mode sep --readin_init gauss --eval_every 100 --qshift_every 1000 --out runs/search/muon_lr0.007_1i2-ali_s0.json
+--opt muon --lr 0.01 --cond 1/i2-ali --steps 3000 --y_mode sep --readin_init gauss --eval_every 100 --qshift_every 1000 --out runs/search/muon_lr0.01_1i2-ali_s0.json
+--opt adamw --lr 3e-4 --beta2 0.95 --cond 1/i2-ali --steps 4000 --y_mode sep --readin_init gauss --eval_every 200 --qshift_every 1000 --out runs/search/adamw_lr3e-4_b20.95_1i2-ali_s0.json
+--opt adamw --lr 5e-4 --beta2 0.95 --cond 1/i2-ali --steps 4000 --y_mode sep --readin_init gauss --eval_every 200 --qshift_every 1000 --out runs/search/adamw_lr5e-4_b20.95_1i2-ali_s0.json
+--opt adamw --lr 1e-3 --beta2 0.95 --cond 1/i2-ali --steps 4000 --y_mode sep --readin_init gauss --eval_every 200 --qshift_every 1000 --out runs/search/adamw_lr1e-3_b20.95_1i2-ali_s0.json
+--opt adamw --lr 2e-3 --cond 1/i2-ali --steps 4000 --y_mode sep --readin_init gauss --eval_every 200 --qshift_every 1000 --out runs/search/adamw_lr2e-3_b20.999_1i2-ali_s0.json
+--opt adamw --lr 2e-4 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --prune_step 3000 --out runs/search/adamw_lr2e-4_b20.999_iso_s0.json
+--opt adamw --lr 5e-4 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --prune_step 3000 --out runs/search/adamw_lr5e-4_b20.999_iso_s0.json
+--opt adamw --lr 1e-4 --beta2 0.95 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --prune_step 3000 --out runs/search/adamw_lr1e-4_b20.95_iso_s0.json
+--opt adamw --lr 3e-4 --beta2 0.95 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --prune_step 3000 --out runs/search/adamw_lr3e-4_b20.95_iso_s0.json
+--opt adamw --lr 5e-4 --beta2 0.95 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --prune_step 3000 --out runs/search/adamw_lr5e-4_b20.95_iso_s0.json
+--opt muon --lr 0.003 --cond iso --steps 3000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/muon_lr0.003_iso_s0.json
+--opt muon --lr 0.007 --cond iso --steps 3000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/muon_lr0.007_iso_s0.json
+--opt sgd --lr 0.3 --clip 1.0 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/sgd_lr0.3_m0.9_clip1_iso_s0.json
+--opt sgd --lr 1.0 --clip 1.0 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/sgd_lr1_m0.9_clip1_iso_s0.json
+--opt sgd --lr 0.1 --momentum 0.99 --clip 1.0 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/sgd_lr0.1_m0.99_clip1_iso_s0.json
+--opt sgd --lr 0.03 --momentum 0.99 --clip 1.0 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/sgd_lr0.03_m0.99_clip1_iso_s0.json
+--opt adamw --lr 3e-4 --param_rotation 1 --cond iso --steps 6000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/repro/xie_adamw3e-4_rotparams_iso_s0.json
+--opt adamw --lr 3e-4 --bf16 0 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/adamw_lr3e-4_b20.999_iso_fp32_s0.json
+--opt muon --lr 0.005 --bf16 0 --cond iso --steps 3000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/muon_lr0.005_iso_fp32_s0.json

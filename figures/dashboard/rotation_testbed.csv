@@ -1,0 +1,16 @@
+run,opt,batch,t_aligned,t_rotated,cost
+adam|16,Adam,16,1130.0,,
+adam|64,Adam,64,540.0,790.0,1.46
+adam|256,Adam,256,120.0,540.0,4.5
+adam|1024,Adam,1024,60.0,390.0,6.5
+signgd|16,SignGD,16,960.0,1900.0,1.98
+signgd|64,SignGD,64,520.0,1400.0,2.69
+signgd|256,SignGD,256,250.0,960.0,3.84
+signgd|1024,SignGD,1024,100.0,1000.0,10.0
+muon|16,Muon,16,190.0,190.0,1.0
+muon|64,Muon,64,140.0,130.0,0.93
+muon|256,Muon,256,70.0,70.0,1.0
+muon|1024,Muon,1024,70.0,60.0,0.86
+adam|exact,Adam,exact,20.0,180.0,9.0
+signgd|exact,SignGD,exact,30.0,1470.0,49.0
+muon|exact,Muon,exact,20.0,30.0,1.5

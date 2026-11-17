@@ -1,0 +1,4 @@
+--opt adamw --lr 1e-4 --cond 1/i2-ali --steps 4000 --y_mode sep --readin_init gauss --eval_every 200 --qshift_every 1000 --out runs/search/adamw_lr1e-4_b20.999_1i2-ali_s0.json
+--opt adamw --lr 2e-4 --cond 1/i2-ali --steps 4000 --y_mode sep --readin_init gauss --eval_every 200 --qshift_every 1000 --out runs/search/adamw_lr2e-4_b20.999_1i2-ali_s0.json
+--opt adamw --lr 5e-4 --cond 1/i2-ali --steps 4000 --y_mode sep --readin_init gauss --eval_every 200 --qshift_every 1000 --out runs/search/adamw_lr5e-4_b20.999_1i2-ali_s0.json
+--opt adamw --lr 1e-3 --cond 1/i2-ali --steps 4000 --y_mode sep --readin_init gauss --eval_every 200 --qshift_every 1000 --out runs/search/adamw_lr1e-3_b20.999_1i2-ali_s0.json

@@ -1,0 +1,5 @@
+# Spectral-flattening knob in the redesigned GPT-2 (concatenated tokens, hidden init 0.044), λ ∝ 1/i², seed 10.
+# Muon with the update's singular values raised to p (1 = normalised gradient, 0 = exact polar factor); Muon's tuned lr.
+--opt muon --lr 0.007 --steps 4000 --hidden_init 0.044 --y_mode concat --readin_init gauss --cond 1/i2-ali --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 100 --iw_every 250 --seed 10 --muon_orth pow --muon_power 1 --out runs/knob/muon_pow1_init044_s10.json
+--opt muon --lr 0.007 --steps 4000 --hidden_init 0.044 --y_mode concat --readin_init gauss --cond 1/i2-ali --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 100 --iw_every 250 --seed 10 --muon_orth pow --muon_power 0.25 --out runs/knob/muon_pow0.25_init044_s10.json
+--opt muon --lr 0.007 --steps 4000 --hidden_init 0.044 --y_mode concat --readin_init gauss --cond 1/i2-ali --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 100 --iw_every 250 --seed 10 --muon_orth pow --muon_power 0 --out runs/knob/muon_pow0_init044_s10.json

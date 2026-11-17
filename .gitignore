@@ -1,0 +1,6 @@
+# model checkpoints (regenerate from jobs/*.txt)
+*.ckpt
+*.ckpt.tmp
+*.json.tmp
+__pycache__/
+*.pyc

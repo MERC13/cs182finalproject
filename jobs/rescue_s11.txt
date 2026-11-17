@@ -1,0 +1,4 @@
+# Rescued GPT-2 (concatenated tokens + hidden init 1/sqrt(128)): the proposal's per-axis test with all three optimizers, λ ∝ 1/i² aligned.
+--opt sgd --lr 0.1 --clip 1.0 --cond 1/i2-ali --steps 6000 --y_mode concat --readin_init gauss --hidden_init 0.0884 --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 500 --iw_every 250 --seed 11 --out runs/rescue/sgd_1i2-ali_s11.json
+--opt adamw --lr 5e-4 --beta2 0.999 --cond 1/i2-ali --steps 6000 --y_mode concat --readin_init gauss --hidden_init 0.0884 --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 500 --iw_every 250 --seed 11 --out runs/rescue/adamw_1i2-ali_s11.json
+--opt muon --lr 0.007 --cond 1/i2-ali --steps 3000 --y_mode concat --readin_init gauss --hidden_init 0.0884 --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 25 --qshift_every 500 --iw_every 250 --seed 11 --out runs/rescue/muon_1i2-ali_s11.json
