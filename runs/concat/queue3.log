@@ -1,0 +1,12 @@
+5 jobs, 5 to run
+[      0s] start runs/concat/adamw_iso_s0.json
+[    623s] start runs/concat/muon_iso_s0.json
+[    636s] start runs/concat/sgd_lr0.03_iso_s0.json
+[    644s] end   runs/concat/adamw_iso_s0.json: done val=0.16214 wall=635.1
+[    644s] start runs/zipf/adamw_M64_z1_s0.json
+[    697s] end   runs/concat/sgd_lr0.03_iso_s0.json: stopped@0 val=None wall=None
+[   1678s] end   runs/concat/muon_iso_s0.json: done val=0.15096 wall=1043.5
+[   2183s] start runs/zipf/muon_M64_z1_s0.json
+[   2757s] end   runs/zipf/adamw_M64_z1_s0.json: done val=0.49185 wall=2103.9
+[   3317s] end   runs/zipf/muon_M64_z1_s0.json: done val=0.48783 wall=1128.6
+all done

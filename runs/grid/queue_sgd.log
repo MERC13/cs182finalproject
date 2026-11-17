@@ -1,0 +1,4 @@
+1 jobs, 1 to run
+[     65s] start runs/grid/sgd_iso_s0.json
+[   2248s] end   runs/grid/sgd_iso_s0.json: done val=0.99518 wall=2176.3
+all done

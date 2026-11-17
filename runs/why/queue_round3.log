@@ -1,0 +1,18 @@
+8 jobs, 8 to run
+[    350s] start runs/transience/adamw_M64_s0.json
+[    433s] start runs/transience/muon_M64_s0.json
+[    581s] start runs/transience/adamw_M16_s0.json
+[   1074s] start runs/transience/muon_M16_s0.json
+[   2012s] end   runs/transience/adamw_M64_s0.json: done val=0.44243 wall=1654.5
+[   2012s] start runs/why/muon_eye_1i2-ali_s0.json
+[   2235s] end   runs/transience/adamw_M16_s0.json: done val=0.89875 wall=1647.7
+[   2235s] start runs/why/muon_eye_1i2-rot_s0.json
+[   2473s] end   runs/transience/muon_M64_s0.json: done val=0.50152 wall=2034.4
+[   2473s] start runs/transience/adamw_M32_s0.json
+[   3026s] end   runs/why/muon_eye_1i2-ali_s0.json: done val=0.09812 wall=1009.8
+[   3026s] start runs/transience/muon_M32_s0.json
+[   3139s] end   runs/transience/muon_M16_s0.json: done val=0.955 wall=2058.0
+[   3214s] end   runs/why/muon_eye_1i2-rot_s0.json: done val=0.099632 wall=970.6
+[   4160s] end   runs/transience/adamw_M32_s0.json: done val=0.64717 wall=1681.1
+[   5130s] end   runs/transience/muon_M32_s0.json: done val=0.75347 wall=2097.9
+all done

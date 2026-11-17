@@ -1,0 +1,10 @@
+4 jobs, 4 to run
+[      0s] start runs/rescue/sgd_1i2-ali_s10.json
+[      3s] start runs/rescue/adamw_1i2-ali_s10.json
+[      6s] start runs/rescue/muon_1i2-ali_s10.json
+[    514s] start runs/rescue/sgd_sep_init088_iso_s0.json
+[   1282s] end   runs/rescue/sgd_sep_init088_iso_s0.json: done val=0.9578 wall=758.3
+[   1287s] end   runs/rescue/muon_1i2-ali_s10.json: done val=0.093216 wall=1273.9
+[   1842s] end   runs/rescue/adamw_1i2-ali_s10.json: done val=0.095348 wall=1830.4
+[   1872s] end   runs/rescue/sgd_1i2-ali_s10.json: done val=0.099437 wall=1864.5
+all done

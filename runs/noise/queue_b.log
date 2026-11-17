@@ -1,0 +1,5 @@
+6 jobs, 6 to run
+[      0s] start runs/noise/muon_b256_1i2-ali_s10.json
+[      3s] start runs/noise/muon_b16_1i2-ali_s10.json
+[    671s] end   runs/noise/muon_b16_1i2-ali_s10.json: done val=0.12171 wall=658.3
+[    671s] start runs/noise/adamw_b16_1i2-ali_s10.json

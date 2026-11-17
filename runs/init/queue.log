@@ -1,0 +1,14 @@
+6 jobs, 6 to run
+[      0s] start runs/init/sgd_lr0.1_init044_s10.json
+[      3s] start runs/init/sgd_lr0.3_init044_s10.json
+[      6s] start runs/init/adamw_init044_s10.json
+[      9s] start runs/init/muon_init044_s10.json
+[   1172s] end   runs/init/muon_init044_s10.json: done val=0.093986 wall=1154.0
+[   1172s] start runs/init/adamw_init002_s10.json
+[   1330s] end   runs/init/sgd_lr0.1_init044_s10.json: done val=0.10766 wall=1323.7
+[   1330s] start runs/init/muon_init002_s10.json
+[   1368s] end   runs/init/sgd_lr0.3_init044_s10.json: done val=0.11211 wall=1358.4
+[   1953s] end   runs/init/adamw_init044_s10.json: done val=0.092766 wall=1939.5
+[   2483s] end   runs/init/muon_init002_s10.json: done val=0.094023 wall=1146.1
+[   3053s] end   runs/init/adamw_init002_s10.json: done val=0.09587 wall=1872.1
+all done

@@ -1,0 +1,8 @@
+3 jobs, 3 to run
+[    590s] start runs/confirm/adamw_iso_s10.json
+[   1053s] start runs/confirm/adamw_iso_s11.json
+[   2442s] start runs/confirm/adamw_iso_s12.json
+[   2990s] end   runs/confirm/adamw_iso_s10.json: done val=0.1798 wall=2389.9
+[   3460s] end   runs/confirm/adamw_iso_s11.json: done val=0.15971 wall=2401.1
+[   4990s] end   runs/confirm/adamw_iso_s12.json: done val=0.18094 wall=2540.0
+all done

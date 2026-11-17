@@ -1,0 +1,10 @@
+4 jobs, 4 to run
+[      0s] start runs/search/adamw_lr1e-4_b20.999_1i2-ali_s0.json
+[      3s] start runs/search/adamw_lr2e-4_b20.999_1i2-ali_s0.json
+[      6s] start runs/search/adamw_lr5e-4_b20.999_1i2-ali_s0.json
+[      9s] start runs/search/adamw_lr1e-3_b20.999_1i2-ali_s0.json
+[   1202s] end   runs/search/adamw_lr2e-4_b20.999_1i2-ali_s0.json: done val=0.2109 wall=1177.1
+[   1227s] end   runs/search/adamw_lr1e-4_b20.999_1i2-ali_s0.json: done val=0.24874 wall=1202.3
+[   1237s] end   runs/search/adamw_lr5e-4_b20.999_1i2-ali_s0.json: done val=0.15535 wall=1212.7
+[   1252s] end   runs/search/adamw_lr1e-3_b20.999_1i2-ali_s0.json: done val=0.17698 wall=1227.4
+all done

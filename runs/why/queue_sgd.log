@@ -1,0 +1,10 @@
+4 jobs, 4 to run
+[      0s] start runs/why/nsgd_lr0.005_iso_s0.json
+[      3s] start runs/why/nsgd_lr0.01_iso_s0.json
+[      6s] start runs/why/sgdhid_lr1_iso_s0.json
+[      9s] start runs/why/sgdhid_lr10_iso_s0.json
+[    687s] end   runs/why/sgdhid_lr1_iso_s0.json: done val=0.99496 wall=675.3
+[    852s] end   runs/why/nsgd_lr0.005_iso_s0.json: done val=0.99457 wall=844.5
+[    952s] end   runs/why/nsgd_lr0.01_iso_s0.json: done val=0.99461 wall=944.2
+[   1027s] end   runs/why/sgdhid_lr10_iso_s0.json: done val=0.99464 wall=1010.5
+all done

@@ -1,0 +1,16 @@
+6 jobs, 6 to run
+[      0s] start runs/sweep/muon_lr0.01_iso.json
+6 jobs, 6 to run
+[      0s] start runs/sweep/muon_lr0.01_iso.json
+[      0s] start runs/sweep/muon_lr0.02_iso.json
+[    520s] start runs/sweep/sgd_lr0.03_iso.json
+[    520s] start runs/sweep/adamw_lr3e-4_iso.json
+[   1080s] end   runs/sweep/muon_lr0.01_iso.json: done val=0.16233 wall=1067.4
+[   1295s] end   runs/sweep/muon_lr0.02_iso.json: done val=0.96055 wall=1285.8
+[   1295s] start runs/sweep/muon_lr0.005_iso.json
+[   1295s] start runs/sweep/sgd_lr0.01_iso.json
+[   1505s] end   runs/sweep/adamw_lr3e-4_iso.json: done val=0.2442 wall=977.6
+[   1530s] end   runs/sweep/sgd_lr0.03_iso.json: done val=0.99437 wall=1002.1
+[   1715s] end   runs/sweep/sgd_lr0.01_iso.json: running val=None wall=None
+[   2245s] end   runs/sweep/muon_lr0.005_iso.json: done val=0.15379 wall=942.4
+all done

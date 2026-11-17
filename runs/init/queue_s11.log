@@ -1,0 +1,8 @@
+3 jobs, 3 to run
+[      0s] start runs/init/sgd_lr0.1_init044_s11.json
+[      3s] start runs/init/adamw_init044_s11.json
+[      6s] start runs/init/muon_init044_s11.json
+[   1129s] end   runs/init/muon_init044_s11.json: done val=0.09324 wall=1117.0
+[   1349s] end   runs/init/sgd_lr0.1_init044_s11.json: done val=0.11227 wall=1343.9
+[   1919s] end   runs/init/adamw_init044_s11.json: done val=0.094162 wall=1910.0
+all done

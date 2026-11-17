@@ -1,0 +1,8 @@
+3 jobs, 3 to run
+[    525s] start runs/confirm/muon_iso_s10.json
+[    808s] start runs/confirm/muon_iso_s11.json
+[   1066s] start runs/confirm/muon_iso_s12.json
+[   1734s] end   runs/confirm/muon_iso_s10.json: done val=0.16108 wall=1203.3
+[   1955s] end   runs/confirm/muon_iso_s11.json: done val=0.16352 wall=1136.8
+[   2200s] end   runs/confirm/muon_iso_s12.json: done val=0.15656 wall=1124.5
+all done

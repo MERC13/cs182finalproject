@@ -1,0 +1,28 @@
+13 jobs, 13 to run
+[   1641s] start runs/confirm/adamw_1i2-ali_s12.json
+[   1944s] start runs/confirm/adamw_1i2-rot_s10.json
+[   3283s] start runs/confirm/adamw_1i2-rot_s11.json
+[   3641s] start runs/confirm/adamw_1i2-rot_s12.json
+[   4289s] end   runs/confirm/adamw_1i2-ali_s12.json: done val=0.10187 wall=2636.5
+[   4479s] end   runs/confirm/adamw_1i2-rot_s10.json: done val=0.11932 wall=2524.1
+[   4859s] start runs/confirm/muon_1i2-ali_s10.json
+[   5562s] start runs/confirm/muon_1i2-ali_s11.json
+[   5730s] end   runs/confirm/adamw_1i2-rot_s11.json: done val=0.1043 wall=2438.2
+[   5930s] end   runs/confirm/muon_1i2-ali_s10.json: done val=0.098662 wall=1064.8
+[   5930s] start runs/confirm/muon_1i2-ali_s12.json
+[   6044s] end   runs/confirm/adamw_1i2-rot_s12.json: done val=0.13098 wall=2394.9
+[   6044s] start runs/confirm/muon_1i2-rot_s10.json
+[   6647s] end   runs/confirm/muon_1i2-ali_s11.json: done val=0.096433 wall=1076.3
+[   6812s] start runs/confirm/muon_1i2-rot_s11.json
+[   7085s] end   runs/confirm/muon_1i2-ali_s12.json: done val=0.1008 wall=1147.4
+[   7085s] start runs/repro/xie_adamw3e-4_rotparams_iso_s0.json
+[   7143s] end   runs/confirm/muon_1i2-rot_s10.json: done val=0.10072 wall=1092.7
+[   7478s] start runs/search/adamw_lr3e-4_b20.999_iso_fp32_s0.json
+[   7696s] start runs/search/muon_lr0.005_iso_fp32_s0.json
+[   7934s] end   runs/confirm/muon_1i2-rot_s11.json: done val=0.099949 wall=1114.7
+[   8220s] start runs/search/sgd_lr1_m0.9_clip1_iso_s0.json
+[   8868s] end   runs/search/muon_lr0.005_iso_fp32_s0.json: done val=0.15644 wall=1165.3
+[   8873s] end   runs/repro/xie_adamw3e-4_rotparams_iso_s0.json: done val=0.99539 wall=1781.3
+[   8893s] end   runs/search/adamw_lr3e-4_b20.999_iso_fp32_s0.json: done val=0.24294 wall=1408.8
+[   9263s] end   runs/search/sgd_lr1_m0.9_clip1_iso_s0.json: done val=1.4163 wall=1035.3
+all done

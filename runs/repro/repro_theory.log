@@ -1,0 +1,66 @@
+zhang 1/i sep: wall 14.9s, final loss 0.2052 vs optimum 0.2052, |G-G*|/|G*| = 2.38e-15
+     {'axis': 1, 't_on': 95.41087791667124, 'measured': 0.9999995893439528, 'predicted': 1.0000000000000002}
+     {'axis': 2, 't_on': 204.75336584945012, 'measured': 0.6703489471736913, 'predicted': np.float64(0.6703614789637989)}
+     {'axis': 3, 't_on': 1051.655579693691, 'measured': 0.5171965363491904, 'predicted': np.float64(0.5171968790342761)}
+     {'axis': 4, 't_on': 2098.565736393399, 'measured': 0.42183004472650343, 'predicted': np.float64(0.42183065933214275)}
+     {'axis': 5, 't_on': 3491.4943980336516, 'measured': 0.3547365626231821, 'predicted': np.float64(0.35473698363849554)}
+     {'axis': 6, 't_on': 4843.282994111071, 'measured': 0.3041920365965036, 'predicted': np.float64(0.3041932527242288)}
+     {'axis': 7, 't_on': 5208.63537252969, 'measured': 0.26409891791898854, 'predicted': np.float64(0.26439515951737375)}
+     {'axis': 8, 't_on': 8665.881134532248, 'measured': 0.23206448188943618, 'predicted': np.float64(0.23206459975035584)}
+zhang 1/i merged: wall 50.2s, final loss 0.2052 vs optimum 0.2052, |G-G*|/|G*| = 1.81e-15
+     {'axis': 1, 't_on': 2.607260555811494, 'measured': 0.9999954356552488, 'predicted': 1.0000000000000002}
+     {'axis': 2, 't_on': 4.033565334886024, 'measured': 0.5674421270124788, 'predicted': np.float64(0.6703614789637989)}
+     {'axis': 3, 't_on': 5.80242649086286, 'measured': 0.43213733203219407, 'predicted': np.float64(0.5171968790342761)}
+     {'axis': 4, 't_on': 7.761507620696199, 'measured': 0.34962188045874465, 'predicted': np.float64(0.42183065933214275)}
+     {'axis': 5, 't_on': 10.382035970811057, 'measured': 0.29430196743476156, 'predicted': np.float64(0.35473698363849554)}
+     {'axis': 6, 't_on': 12.913229215554209, 'measured': 0.25828697962480174, 'predicted': np.float64(0.3041932527242288)}
+     {'axis': 7, 't_on': 16.061540264574518, 'measured': 0.2360647089303255, 'predicted': np.float64(0.26439515951737375)}
+     {'axis': 8, 't_on': 19.264044216596545, 'measured': 0.2232005233055414, 'predicted': np.float64(0.23206459975035584)}
+zhang 1/i2 sep: wall 24.6s, final loss 0.1619 vs optimum 0.1619, |G-G*|/|G*| = 2.38e-14
+     {'axis': 1, 't_on': 31.259301627937614, 'measured': 0.9999996687637643, 'predicted': 1.0}
+     {'axis': 2, 't_on': 256.97762478501033, 'measured': 0.39322531543792205, 'predicted': np.float64(0.39322627215814243)}
+     {'axis': 3, 't_on': 3219.54543346427, 'measured': 0.2593059118800102, 'predicted': np.float64(0.2593059217861155)}
+     {'axis': 4, 't_on': 7799.365889319794, 'measured': 0.2095096169184607, 'predicted': np.float64(0.2095096831432248)}
+     {'axis': 5, 't_on': 21439.714298447503, 'measured': 0.18671327490126277, 'predicted': np.float64(0.18671330052096935)}
+     {'axis': 6, 't_on': 34080.07347676544, 'measured': 0.17494092996100796, 'predicted': np.float64(0.1749410617968898)}
+     {'axis': 7, 't_on': 58935.733458600786, 'measured': 0.1683269341528576, 'predicted': np.float64(0.16832698925466197)}
+     {'axis': 8, 't_on': 162008.72035663028, 'measured': 0.16436238090814648, 'predicted': np.float64(0.16436238228108435)}
+zhang 1/i2 merged: wall 106.5s, final loss 0.1619 vs optimum 0.1619, |G-G*|/|G*| = 3.93e-14
+     {'axis': 1, 't_on': 0.8343027653237962, 'measured': 0.9999663043800288, 'predicted': 1.0}
+     {'axis': 2, 't_on': 3.9660807507429965, 'measured': 0.35904722389798094, 'predicted': np.float64(0.39322627215814243)}
+     {'axis': 3, 't_on': 14.03819193936469, 'measured': 0.23646685588043126, 'predicted': np.float64(0.2593059217861155)}
+     {'axis': 4, 't_on': 34.007594432917614, 'measured': 0.19751049941095256, 'predicted': np.float64(0.2095096831432248)}
+     {'axis': 5, 't_on': 69.60611042269333, 'measured': 0.1797916999400877, 'predicted': np.float64(0.18671330052096935)}
+     {'axis': 6, 't_on': 125.55206416438268, 'measured': 0.17025813785569932, 'predicted': np.float64(0.1749410617968898)}
+     {'axis': 7, 't_on': 208.16308075852896, 'measured': 0.16561072490794326, 'predicted': np.float64(0.16832698925466197)}
+     {'axis': 8, 't_on': 317.23925010866606, 'measured': 0.16336770643848242, 'predicted': np.float64(0.16436238228108435)}
+zhang iso merged (von Oswald check): final loss 0.2195 vs 0.2195, |G-G*|/|G*| = 6.87e-16
+{'kappa': 1, 'rotated': False, 'kappa_eff': 1, 'gd': 1, 'muon': 3, 'muon_cfg': (1.0, 0.98), 'signgd': 51, 'signgd_cfg': (0.1, 0.95)}
+{'kappa': 2, 'rotated': False, 'kappa_eff': 8, 'gd': 40, 'muon': 45, 'muon_cfg': (1.0, 0.9), 'signgd': 90, 'signgd_cfg': (0.1, 0.95)}
+{'kappa': 4, 'rotated': False, 'kappa_eff': 64, 'gd': 313, 'muon': 57, 'muon_cfg': (0.3, 0.9), 'signgd': 99, 'signgd_cfg': (0.1, 0.95)}
+{'kappa': 8, 'rotated': False, 'kappa_eff': 512, 'gd': 2369, 'muon': 64, 'muon_cfg': (1.0, 0.9), 'signgd': 114, 'signgd_cfg': (0.1, 0.95)}
+{'kappa': 16, 'rotated': False, 'kappa_eff': 4096, 'gd': 17852, 'muon': 62, 'muon_cfg': (1.0, 0.9), 'signgd': 107, 'signgd_cfg': (0.1, 0.95)}
+{'kappa': 1, 'rotated': True, 'kappa_eff': 1, 'gd': 1, 'muon': 3, 'muon_cfg': (1.0, 0.98), 'signgd': 90, 'signgd_cfg': (0.1, 0.95)}
+{'kappa': 2, 'rotated': True, 'kappa_eff': 8, 'gd': 40, 'muon': 45, 'muon_cfg': (1.0, 0.9), 'signgd': 61, 'signgd_cfg': (0.1, 0.9)}
+{'kappa': 4, 'rotated': True, 'kappa_eff': 64, 'gd': 313, 'muon': 57, 'muon_cfg': (0.3, 0.9), 'signgd': 343, 'signgd_cfg': (0.03, 0.98)}
+{'kappa': 8, 'rotated': True, 'kappa_eff': 512, 'gd': 2369, 'muon': 63, 'muon_cfg': (0.3, 0.9), 'signgd': None, 'signgd_cfg': None}
+{'kappa': 16, 'rotated': True, 'kappa_eff': 4096, 'gd': 17852, 'muon': 68, 'muon_cfg': (0.3, 0.9), 'signgd': None, 'signgd_cfg': None}
+deeplin gd rotated=False lr=0.02: T90 per mode [110, 210, 390, 770, 1800, 3190]
+deeplin gd rotated=False lr=0.05: T90 per mode [50, 90, 160, 310, 720, 1280]
+deeplin gd rotated=False lr=0.1: T90 per mode [30, 50, 80, 160, 370, 640]
+deeplin adam rotated=False lr=0.001: T90 per mode [670, 900, 430, 580, 210, 150]
+deeplin adam rotated=False lr=0.003: T90 per mode [220, 300, 140, 240, 80, 60]
+deeplin adam rotated=False lr=0.01: T90 per mode [70, 60, 40, 130, 40, 30]
+deeplin spectral rotated=False lr=0.003: T90 per mode [640, 450, 320, 230, 170, 120]
+deeplin spectral rotated=False lr=0.01: T90 per mode [200, 140, 100, 70, 50, 40]
+deeplin spectral rotated=False lr=0.03: T90 per mode [70, 50, 40, 30, 20, 20]
+deeplin gd rotated=True lr=0.02: T90 per mode [110, 210, 400, 750, 1440, 3740]
+deeplin gd rotated=True lr=0.05: T90 per mode [50, 90, 170, 300, 580, 1500]
+deeplin gd rotated=True lr=0.1: T90 per mode [30, 50, 90, 160, 290, 750]
+deeplin adam rotated=True lr=0.001: T90 per mode [550, 490, 730, 940, 1420, 2600]
+deeplin adam rotated=True lr=0.003: T90 per mode [190, 190, 250, 330, 490, 660]
+deeplin adam rotated=True lr=0.01: T90 per mode [60, 50, 100, 110, 200, 280]
+deeplin spectral rotated=True lr=0.003: T90 per mode [640, 450, 320, 230, 160, 120]
+deeplin spectral rotated=True lr=0.01: T90 per mode [200, 140, 100, 70, 50, 40]
+deeplin spectral rotated=True lr=0.03: T90 per mode [70, 50, 40, 30, 20, None]
+wrote figures/verify/repro_theory.json

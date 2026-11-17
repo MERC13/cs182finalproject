@@ -1,0 +1,8 @@
+3 jobs, 3 to run
+[     50s] start runs/grid/adamw_1i2-ali_s1.json
+[    253s] start runs/grid/muon_iso_s1.json
+[    701s] start runs/grid/muon_1i2-ali_s1.json
+[   1494s] end   runs/grid/muon_iso_s1.json: done val=0.15316 wall=1232.2
+[   1969s] end   runs/grid/muon_1i2-ali_s1.json: done val=0.094955 wall=1259.6
+[   2374s] end   runs/grid/adamw_1i2-ali_s1.json: done val=0.10784 wall=2318.9
+all done

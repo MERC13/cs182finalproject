@@ -1,0 +1,13 @@
+24 jobs, 24 to run
+[    280s] start runs/repro/garg_adam1e-4_cur_s0.json
+[    303s] start runs/repro/garg_adam1e-4_nocur_s0.json
+[    316s] start runs/search/muon_lr0.002_1i2-ali_s0.json
+[    329s] start runs/search/muon_lr0.003_1i2-ali_s0.json
+[   1192s] end   runs/search/muon_lr0.002_1i2-ali_s0.json: done val=0.094021 wall=870.4
+[   1192s] start runs/search/muon_lr0.007_1i2-ali_s0.json
+[   1250s] end   runs/search/muon_lr0.003_1i2-ali_s0.json: done val=0.095208 wall=913.8
+[   1895s] start runs/search/muon_lr0.01_1i2-ali_s0.json
+[   2108s] end   runs/search/muon_lr0.007_1i2-ali_s0.json: done val=0.09678 wall=906.4
+[   2754s] start runs/search/adamw_lr3e-4_b20.95_1i2-ali_s0.json
+[   2827s] end   runs/search/muon_lr0.01_1i2-ali_s0.json: done val=0.10533 wall=926.3
+[   2827s] start runs/search/adamw_lr5e-4_b20.95_1i2-ali_s0.json

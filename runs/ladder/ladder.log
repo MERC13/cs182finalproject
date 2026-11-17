@@ -1,0 +1,26 @@
+[ 1604s] sweep done
+L1-none      1/i2-ali  adam  lr 0.01  final loss 0.1771
+L1-none      1/i2-ali  muon  lr 0.01  final loss 0.1769
+L1-none      1/i2-ali  sgd   lr 0.03  final loss 0.2001
+L1-none      1/i2-rot  adam  lr 0.01  final loss 0.1967
+L1-none      1/i2-rot  muon  lr 0.01  final loss 0.1892
+L1-none      1/i2-rot  sgd   lr 0.03  final loss 0.2147
+L2-learned   1/i2-ali  adam  lr 0.01  final loss 0.0268
+L2-learned   1/i2-ali  muon  lr 0.003  final loss 0.0128
+L2-learned   1/i2-ali  sgd   lr 0.1  final loss 0.4339
+L2-learned   1/i2-rot  adam  lr 0.003  final loss 0.0491
+L2-learned   1/i2-rot  muon  lr 0.003  final loss 0.0135
+L2-learned   1/i2-rot  sgd   lr 0.03  final loss 1.0675
+L2-none      1/i2-ali  adam  lr 0.01  final loss 0.0426
+L2-none      1/i2-ali  muon  lr 0.01  final loss 0.0432
+L2-none      1/i2-ali  sgd   lr 0.03  final loss 0.0885
+L2-none      1/i2-rot  adam  lr 0.01  final loss 0.0606
+L2-none      1/i2-rot  muon  lr 0.01  final loss 0.0405
+L2-none      1/i2-rot  sgd   lr 0.03  final loss 0.0828
+L4-none      1/i2-ali  adam  lr 0.003  final loss 2997555181566887386910031872.0000
+L4-none      1/i2-ali  muon  lr 0.001  final loss 0.0411
+L4-none      1/i2-ali  sgd   lr 0.03  final loss 5935437709312.0000
+L4-none      1/i2-rot  adam  lr 0.003  final loss 0.2317
+L4-none      1/i2-rot  muon  lr 0.001  final loss 0.0247
+L4-none      1/i2-rot  sgd   lr 0.03  final loss 0.1135
+done in 2311s -> runs/ladder/ladder.json
