@@ -1,0 +1,76 @@
+"""Learning-rate check at Garg scale (jobs/garg_lr.txt): is each arm's rate in the main runs the best of a x3 grid?
+
+  python scripts/analyze_garg_lr.py
+
+Seed 10, 1,500 steps. Criterion: training loss averaged over steps 1,400-1,500 (the two logged 50-step averages at
+steps 1,450 and 1,500). Every training prompt is new, so this estimates the population loss without touching the
+evaluation prompts. The centre rates are read from the main runs (runs/garg_scale, seed 10) at the same steps;
+their trajectories up to step 1,500 are the same as a 1,500-step run's (constant learning rate after warmup).
+Also shown, for information only: error with 40 examples on the held-out prompts at step 1,500, and the first step
+with that error <= 0.1.
+"""
+import json
+import os
+import sys
+
+import numpy as np
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
+from icl.analysis import load  # noqa: E402
+
+ARMS = [
+    ("SGD", [("runs/garg_lr/sgd_lr0.03_s10.json", 0.03), ("runs/garg_scale/sgd_s10.json", 0.1),
+             ("runs/garg_lr/sgd_lr0.3_s10.json", 0.3)]),
+    ("AdamW", [("runs/garg_lr/adamw_lr1e-4_s10.json", 1e-4), ("runs/garg_scale/adamw_s10.json", 3e-4),
+               ("runs/garg_lr/adamw_lr1e-3_s10.json", 1e-3)]),
+    ("Muon", [("runs/garg_lr/muon_lr0.0025_s10.json", 0.0025), ("runs/garg_scale/muon_s10.json", 0.007),
+              ("runs/garg_lr/muon_lr0.02_s10.json", 0.02)]),
+    ("Muon, p = 1", [("runs/garg_lr/muon_pow1_lr0.00015_s10.json", 1.5e-4),
+                     ("runs/garg_scale/muon_pow1_lr0.0005_s10.json", 5e-4),
+                     ("runs/garg_lr/muon_pow1_lr0.0015_s10.json", 1.5e-3),
+                     ("runs/garg_scale/muon_pow1_lr0.007_s10.json", 7e-3)]),
+]
+USED = {"SGD": 0.1, "AdamW": 3e-4, "Muon": 0.007, "Muon, p = 1": 5e-4}
+STEP = 1500
+
+
+def row(path):
+    p = os.path.join(ROOT, path)
+    if not os.path.exists(p):
+        return None
+    d = json.load(open(p))
+    ev = {e["step"]: e for e in d["evals"]}
+    if STEP not in ev or (STEP - 50) not in ev:
+        return dict(status=d.get("status"), last=d["evals"][-1]["step"] if d["evals"] else 0)
+    tl = float(np.mean([ev[STEP]["train_loss"], ev[STEP - 50]["train_loss"]]))
+    r = load(p)
+    err = float(r.err_last[np.nonzero(r.steps == STEP)[0][0]])
+    i = np.nonzero(r.err_last <= 0.1)[0]
+    return dict(status=d.get("status"), train=tl, err=err, t01=int(r.steps[i[0]]) if len(i) else None)
+
+
+def main():
+    out = {}
+    print(f"{'arm':12s} {'lr':>8s} {'status':9s} {'train loss 1400-1500':>21s} {'error@40 (1500)':>16s} {'step to 0.1':>12s}")
+    for arm, grid in ARMS:
+        res = [(lr, row(p)) for p, lr in grid]
+        done = [(lr, x) for lr, x in res if x and "train" in x and np.isfinite(x["train"])]
+        best = min(done, key=lambda t: t[1]["train"])[0] if done else None
+        for lr, x in res:
+            if x is None:
+                print(f"{arm:12s} {lr:8.2g} {'missing':9s}")
+                continue
+            if "train" not in x:
+                print(f"{arm:12s} {lr:8.2g} {str(x['status']):9s} (stopped at step {x['last']})")
+                continue
+            mark = (" best" if lr == best else "") + (" (used)" if lr == USED[arm] else "")
+            print(f"{arm:12s} {lr:8.2g} {str(x['status']):9s} {x['train']:21.4f} {x['err']:16.4f} "
+                  f"{str(x['t01']):>12s}{mark}")
+        out[arm] = dict(used=USED[arm], best=best, grid=[dict(lr=lr, **(x or {})) for lr, x in res])
+    os.makedirs(os.path.join(ROOT, "figures/report"), exist_ok=True)
+    json.dump(out, open(os.path.join(ROOT, "figures/report/garg_lr.json"), "w"), indent=1)
+
+
+if __name__ == "__main__":
+    main()

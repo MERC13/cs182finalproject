@@ -2,6 +2,37 @@
 
 Initial tests of the CS 182 proposal (Chu, Dao, Hu, Cha). **Results: [`REPORT.md`](REPORT.md).**
 
+## Final report: figures, statistics and checkpoints
+
+Everything in the final report's results comes from the committed JSON logs; no retraining is needed.
+
+```bash
+python3 scripts/report_data.py          # Figures 1-3 data -> figures/report/*.json
+python3 scripts/analyze_garg_seeds.py   # Section 4 statistics (three seeds, matched errors)
+python3 scripts/analyze_garg_scale.py   # seed-10 detail, including exact Muon
+python3 scripts/ood_map_linattn.py      # linear attention: query shifts at matched error
+python3 scripts/analyze_schatten_pilot.py  # linear attention: the spectral knob
+python3 scripts/analyze_garg_lr.py      # learning-rate check at Garg scale (Appendix B)
+```
+
+**Checkpoints.** `checkpoints/<dir>/<run>.pt` holds the final float32 weights of every GPT-2 run the report uses
+(`garg_scale/`: 12 layers, width 256, seeds 10-12, plus exact Muon; `init/`, `knob/`, `ood/`: the smaller GPT-2),
+with the run's training flags. Load one and check it against its log:
+
+```bash
+python3 scripts/eval_checkpoint.py checkpoints/garg_scale/muon_s11.pt   # or --all
+```
+
+```python
+from scripts.eval_checkpoint import load_model
+model, config, ck = load_model("checkpoints/garg_scale/muon_s11.pt")   # model(x, y) -> predictions
+```
+
+The weights are those at each run's last evaluation; the matched-error measurements in the report are taken at
+earlier steps and are read from the logs. Retrain any run with `python3 scripts/run_queue.py jobs/<file>.txt`.
+The linear-attention runs need no checkpoints: their learned matrix at every logged step is in
+`runs/linattn/ood_gamma.json`.
+
 A small re-implementation of the proposal's setup in plain PyTorch:
 - Garg et al. (2022)-style in-context linear regression;
 - a GPT-2 identical in architecture to Garg's `TransformerModel`;
