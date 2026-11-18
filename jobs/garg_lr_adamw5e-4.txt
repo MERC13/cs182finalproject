@@ -1,0 +1,2 @@
+# AdamW at 5e-4, the rate the smaller GPT-2's search chose for these inputs (the Garg-scale runs used 3e-4).
+--opt adamw --lr 5e-4 --beta2 0.999 --d 20 --n_points 41 --n_layer 12 --n_head 8 --n_embd 256 --hidden_init 0.031 --y_mode concat --readin_init gauss --cond 1/i2-ali --eval_seed 30000 --eval_every 100 --dense_until 1500 --dense_every 50 --qshift_every 500 --qshift_ts 0,-1,-0.5,0.25,0.5,0.75,1 --iw_every 0 --ckpt_every 250 --seed 10 --steps 1500 --out runs/garg_lr/adamw_lr5e-4_s10.json

@@ -2,7 +2,7 @@
 
   python scripts/analyze_garg_lr.py
 
-Seed 10, 1,500 steps. Criterion: training loss averaged over steps 1,400-1,500 (the two logged 50-step averages at
+Seed 10, 1,500 steps (jobs/garg_lr.txt, plus AdamW 5e-4 in jobs/garg_lr_adamw5e-4.txt). Criterion: training loss averaged over steps 1,400-1,500 (the two logged 50-step averages at
 steps 1,450 and 1,500). Every training prompt is new, so this estimates the population loss without touching the
 evaluation prompts. The centre rates are read from the main runs (runs/garg_scale, seed 10) at the same steps;
 their trajectories up to step 1,500 are the same as a 1,500-step run's (constant learning rate after warmup).
@@ -23,6 +23,7 @@ ARMS = [
     ("SGD", [("runs/garg_lr/sgd_lr0.03_s10.json", 0.03), ("runs/garg_scale/sgd_s10.json", 0.1),
              ("runs/garg_lr/sgd_lr0.3_s10.json", 0.3)]),
     ("AdamW", [("runs/garg_lr/adamw_lr1e-4_s10.json", 1e-4), ("runs/garg_scale/adamw_s10.json", 3e-4),
+               ("runs/garg_lr/adamw_lr5e-4_s10.json", 5e-4),
                ("runs/garg_lr/adamw_lr1e-3_s10.json", 1e-3)]),
     ("Muon", [("runs/garg_lr/muon_lr0.0025_s10.json", 0.0025), ("runs/garg_scale/muon_s10.json", 0.007),
               ("runs/garg_lr/muon_lr0.02_s10.json", 0.02)]),
