@@ -4,3 +4,5 @@
 [      6s] start runs/garg_scale/sgd_s11.json
 [      9s] start runs/garg_scale/adamw_s11.json
 8 jobs, 8 to run
+[   6140s] start runs/garg_scale/sgd_s12.json
+[   6249s] start runs/garg_scale/adamw_s12.json
