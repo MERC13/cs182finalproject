@@ -63,7 +63,11 @@ def main():
                 break
             args, out = todo.pop(ready[0])
             os.makedirs(os.path.dirname(os.path.join(ROOT, out)), exist_ok=True)
-            log = open(os.path.join(ROOT, out.replace(".json", ".log")), "w")
+            # an interrupted run (e.g. a container restart) continues from its own last checkpoint
+            own = out.replace(".json", ".ckpt")
+            if "--resume" not in args and os.path.exists(os.path.join(ROOT, own)):
+                args = [*args, "--resume", own]
+            log = open(os.path.join(ROOT, out.replace(".json", ".log")), "a")
             p = subprocess.Popen([sys.executable, "-m", "icl.train", *args], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
             running.append((p, out, log))
             print(f"[{time.time()-t0:7.0f}s] start {out}", flush=True)
