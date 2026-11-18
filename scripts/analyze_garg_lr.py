@@ -6,8 +6,10 @@ Seed 10, 1,500 steps (jobs/garg_lr.txt, plus AdamW 5e-4 in jobs/garg_lr_adamw5e-
 steps 1,450 and 1,500). Every training prompt is new, so this estimates the population loss without touching the
 evaluation prompts. The centre rates are read from the main runs (runs/garg_scale, seed 10) at the same steps;
 their trajectories up to step 1,500 are the same as a 1,500-step run's (constant learning rate after warmup).
-Also shown, for information only: error with 40 examples on the held-out prompts at step 1,500, and the first step
-with that error <= 0.1.
+Also shown, for information only: error with 40 examples on the held-out prompts at step 1,500, the first step
+with that error <= 0.1, and H1's statistic (weak-direction fraction learned, directions 3-20) at the first evaluation
+with that error <= 0.05, if reached by step 1,500. The last checks that the H1 gap between Muon and AdamW does not
+depend on either rate.
 """
 import json
 import os
@@ -34,6 +36,7 @@ ARMS = [
 ]
 USED = {"SGD": 0.1, "AdamW": 3e-4, "Muon": 0.007, "Muon, p = 1": 5e-4}
 STEP = 1500
+H1_LEVEL = 0.05
 
 
 def row(path):
@@ -48,12 +51,14 @@ def row(path):
     r = load(p)
     err = float(r.err_last[np.nonzero(r.steps == STEP)[0][0]])
     i = np.nonzero(r.err_last <= 0.1)[0]
-    return dict(status=d.get("status"), train=tl, err=err, t01=int(r.steps[i[0]]) if len(i) else None)
+    j = np.nonzero((r.err_last <= H1_LEVEL) & (r.steps <= STEP))[0]
+    weak = float(np.mean(1 - r.probe_err()[int(j[0])][2:])) if len(j) else None
+    return dict(status=d.get("status"), train=tl, err=err, t01=int(r.steps[i[0]]) if len(i) else None, weak05=weak)
 
 
 def main():
     out = {}
-    print(f"{'arm':12s} {'lr':>8s} {'status':9s} {'train loss 1400-1500':>21s} {'error@40 (1500)':>16s} {'step to 0.1':>12s}")
+    print(f"{'arm':12s} {'lr':>8s} {'status':9s} {'train loss 1400-1500':>21s} {'error@40 (1500)':>16s} {'step to 0.1':>12s} {'H1 at 0.05':>11s}")
     for arm, grid in ARMS:
         res = [(lr, row(p)) for p, lr in grid]
         done = [(lr, x) for lr, x in res if x and "train" in x and np.isfinite(x["train"])]
@@ -67,7 +72,7 @@ def main():
                 continue
             mark = (" best" if lr == best else "") + (" (used)" if lr == USED[arm] else "")
             print(f"{arm:12s} {lr:8.2g} {str(x['status']):9s} {x['train']:21.4f} {x['err']:16.4f} "
-                  f"{str(x['t01']):>12s}{mark}")
+                  f"{str(x['t01']):>12s} {'-' if x['weak05'] is None else format(x['weak05'], '+.3f'):>11s}{mark}")
         out[arm] = dict(used=USED[arm], best=best, grid=[dict(lr=lr, **(x or {})) for lr, x in res])
     os.makedirs(os.path.join(ROOT, "figures/report"), exist_ok=True)
     json.dump(out, open(os.path.join(ROOT, "figures/report/garg_lr.json"), "w"), indent=1)
