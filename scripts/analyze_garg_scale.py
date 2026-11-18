@@ -23,7 +23,7 @@ from icl.analysis import load  # noqa: E402
 
 DIR = sys.argv[1] if len(sys.argv) > 1 else "runs/garg_scale"
 ARMS = [("SGD", "sgd_s10.json"), ("AdamW", "adamw_s10.json"), ("Muon", "muon_s10.json"), ("Muon, exact", "muon_exact_s10.json"),
-        ("Muon, p = 1, lr 0.002", "muon_pow1_lr0.002_s10.json"), ("Muon, p = 1, lr 0.0005", "muon_pow1_lr0.0005_s10.json")]
+        ("Muon, p = 1", "muon_pow1_lr0.0005_s10.json")]
 LEVELS = (0.3, 0.2, 0.1, 0.05, 0.04, 0.03)
 
 
