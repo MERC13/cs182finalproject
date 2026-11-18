@@ -6,3 +6,5 @@
 8 jobs, 8 to run
 [   6140s] start runs/garg_scale/sgd_s12.json
 [   6249s] start runs/garg_scale/adamw_s12.json
+[  11189s] start runs/garg_scale/muon_s11.json
+[  11257s] start runs/garg_scale/muon_s12.json
