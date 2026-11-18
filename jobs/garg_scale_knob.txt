@@ -1,0 +1,2 @@
+# H3 at this scale: Muon with the update's singular values left unflattened (p = 1, normalised gradient), vs exact Muon (p = 0).
+--opt muon --lr 0.007 --muon_orth pow --muon_power 1 --steps 3000 --d 20 --n_points 41 --n_layer 12 --n_head 8 --n_embd 256 --hidden_init 0.031 --y_mode concat --readin_init gauss --cond 1/i2-ali --eval_seed 30000 --eval_every 100 --dense_until 2000 --dense_every 50 --qshift_every 100 --qshift_ts 0,-1,-0.5,0.25,0.5,0.75,1 --iw_every 0 --seed 10 --out runs/garg_scale/muon_pow1_s10.json

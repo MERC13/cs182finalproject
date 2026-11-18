@@ -3,3 +3,6 @@
 [      3s] start runs/garg_scale/adamw_s10.json
 [      6s] start runs/garg_scale/muon_s10.json
 [      9s] start runs/garg_scale/muon_exact_s10.json
+[  10238s] end   runs/garg_scale/muon_s10.json: done val=0.1075 wall=10218.0
+[  11108s] end   runs/garg_scale/sgd_s10.json: done val=0.13314 wall=11093.6
+[  11283s] end   runs/garg_scale/adamw_s10.json: done val=0.12741 wall=11263.8

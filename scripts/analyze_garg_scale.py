@@ -9,7 +9,7 @@ runs reach (in-distribution error with 40 examples, relative to predicting 0):
   H2  shifted-query error at the same matched level (first crossing of the in-distribution query error on the
       shifted-query prompts, log-linear interpolation), queries shifted toward the rare (t > 0) or common (t < 0)
       directions; ratio to AdamW
-  H3  exact-orthogonalisation Muon (p = 0) against standard Muon
+  H3  spectral knob: Muon with the update's singular values unflattened (p = 1) vs standard and exact (p = 0) Muon
 """
 import json
 import os
@@ -22,8 +22,9 @@ sys.path.insert(0, ROOT)
 from icl.analysis import load  # noqa: E402
 
 DIR = sys.argv[1] if len(sys.argv) > 1 else "runs/garg_scale"
-ARMS = [("SGD", "sgd_s10.json"), ("AdamW", "adamw_s10.json"), ("Muon", "muon_s10.json"), ("Muon, exact", "muon_exact_s10.json")]
-LEVELS = (0.3, 0.2, 0.1, 0.05, 0.03)
+ARMS = [("SGD", "sgd_s10.json"), ("AdamW", "adamw_s10.json"), ("Muon", "muon_s10.json"), ("Muon, exact", "muon_exact_s10.json"),
+        ("Muon, p = 1", "muon_pow1_s10.json")]
+LEVELS = (0.3, 0.2, 0.1, 0.05, 0.04, 0.03)
 
 
 def q_matched(d, lv):
