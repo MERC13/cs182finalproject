@@ -14,3 +14,5 @@
 [  10156s] end   runs/garg_lr/muon_lr0.02_s10.json: done val=0.13725 wall=5333.6
 [  10191s] end   runs/garg_lr/muon_lr0.0025_s10.json: done val=0.11792 wall=5398.4
 [  11166s] end   runs/garg_lr/muon_pow1_lr0.00015_s10.json: done val=0.15872 wall=6330.9
+[  15511s] end   runs/garg_lr/muon_pow1_lr0.0015_s10.json: done val=0.154 wall=6212.3
+all done
