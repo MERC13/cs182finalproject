@@ -10,6 +10,7 @@ At each matched in-distribution error level (error with 40 examples, relative to
       shifted-query prompts (log-linear interpolation); geometric mean over the rare-ward shifts (t > 0) and over
       the common-ward ones (t < 0). Holds in a seed if Muon's rare-ward ratio < 1 and its common-ward ratio > 1.
   H3  H1's statistic for Muon minus Muon with unflattened updates (p = 1). Holds in a seed if > 0.
+Paired differences per seed are printed with one-sided paired t-tests (n - 1 = 2 degrees of freedom).
 """
 import json
 import os
@@ -32,6 +33,22 @@ LEVELS = (0.1, 0.05, 0.04, 0.03)
 
 def fmt(v, w=6, p=3):
     return f"{'-':>{w}s}" if v is None or not np.isfinite(v) else f"{v:{w}.{p}f}"
+
+
+def p_one_sided(diffs):
+    """One-sided paired t-test that the mean difference is > 0 (Student t, n - 1 degrees of freedom)."""
+    d = np.asarray(diffs, dtype=float)
+    n = len(d)
+    if n < 2 or d.std(ddof=1) == 0:
+        return float("nan")
+    t = d.mean() / (d.std(ddof=1) / np.sqrt(n))
+    k = n - 1
+    if k == 2:  # closed form
+        return float(0.5 * (1 - t / np.sqrt(t * t + 2)))
+    from math import gamma, pi
+    c = gamma((k + 1) / 2) / (np.sqrt(k * pi) * gamma(k / 2))
+    x = np.linspace(t, t + 200, 400001)
+    return float(np.trapezoid(c * (1 + x * x / k) ** (-(k + 1) / 2), x))
 
 
 def summary(vals, p=3):
@@ -117,6 +134,12 @@ def main():
         print(f"  H1 Muon > AdamW and SGD in {len(h1_ok)}/{len(h1)} seeds (Muon > AdamW in {len(h1b_ok)}/{len(h1b)});"
               f"  H2 rare < 1 < common in {len(h2_ok)}/{len(h2)};"
               f"  H3 Muon - p=1 = {summary(d3)} (> 0 in {len(h3_ok)}/{len(h3)})")
+        for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1")):
+            ss = [s for s in SEEDS if weak.get((a, s)) is not None and weak.get((b, s)) is not None]
+            if len(ss) >= 2:
+                dd = [weak[a, s] - weak[b, s] for s in ss]
+                print(f"  paired {a} - {b}: " + " ".join(f"s{s} {x:+.3f}" for s, x in zip(ss, dd))
+                      + f"  mean {np.mean(dd):+.3f}  one-sided p = {p_one_sided(dd):.3f}")
         tally[lv] = dict(H1=(len(h1_ok), len(h1)), H1_vs_AdamW=(len(h1b_ok), len(h1b)), H2=(len(h2_ok), len(h2)),
                          H3=(len(h3_ok), len(h3)), weak={f"{k[0]}|{k[1]}": v for k, v in weak.items()},
                          rare={f"{k[0]}|{k[1]}": v for k, v in rare.items()},
