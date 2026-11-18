@@ -1,2 +1,4 @@
 1 jobs, 1 to run
 [   4601s] start runs/garg_lr/adamw_lr5e-4_s10.json
+[   9079s] end   runs/garg_lr/adamw_lr5e-4_s10.json: done val=0.1527 wall=4461.9
+all done
