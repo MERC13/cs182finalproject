@@ -1,0 +1,5 @@
+8 jobs, 8 to run
+[      0s] start runs/garg_lr/sgd_lr0.03_s10.json
+[      3s] start runs/garg_lr/sgd_lr0.3_s10.json
+[      6s] start runs/garg_lr/adamw_lr1e-4_s10.json
+[      9s] start runs/garg_lr/adamw_lr1e-3_s10.json
