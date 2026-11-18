@@ -1,0 +1,62 @@
+[
+{
+"arm": "SGD",
+"seed": 10,
+"step": 2200
+},
+{
+"arm": "SGD",
+"seed": 11,
+"step": 2400
+},
+{
+"arm": "SGD",
+"seed": 12,
+"step": 2200
+},
+{
+"arm": "AdamW",
+"seed": 10,
+"step": 1400
+},
+{
+"arm": "AdamW",
+"seed": 11,
+"step": 1350
+},
+{
+"arm": "AdamW",
+"seed": 12,
+"step": 1400
+},
+{
+"arm": "Muon",
+"seed": 10,
+"step": 500
+},
+{
+"arm": "Muon",
+"seed": 11,
+"step": 500
+},
+{
+"arm": "Muon",
+"seed": 12,
+"step": 450
+},
+{
+"arm": "Muon, p = 1",
+"seed": 10,
+"step": 1250
+},
+{
+"arm": "Muon, p = 1",
+"seed": 11,
+"step": 1250
+},
+{
+"arm": "Muon, p = 1",
+"seed": 12,
+"step": 1100
+}
+]
