@@ -32,6 +32,21 @@ def system_load():
     return n
 
 
+def active_outs():
+    """--out paths of the icl.train processes running on the machine (launched by any queue, or by hand)."""
+    outs = set()
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        try:
+            argv = [x.decode() for x in open(f"/proc/{pid}/cmdline", "rb").read().split(b"\0")]
+        except OSError:
+            continue
+        if "icl.train" in argv and "--out" in argv and argv.index("--out") + 1 < len(argv):
+            outs.add(os.path.normpath(argv[argv.index("--out") + 1]))
+    return outs
+
+
 def done(out):
     try:
         return json.load(open(out))["status"] != "running"
@@ -56,9 +71,12 @@ def main():
     t0 = time.time()
     while todo or running:
         while todo and len(running) < a.procs and system_load() < a.procs:
+            # a job already training in another process (e.g. an earlier queue) is left alone; finished ones drop out
+            todo = [(ar, o) for ar, o in todo if not done(os.path.join(ROOT, o))]
+            busy = active_outs()
             # jobs that resume from a checkpoint wait until that checkpoint exists (dependency)
-            ready = [i for i, (ar, _) in enumerate(todo)
-                     if "--resume" not in ar or os.path.exists(os.path.join(ROOT, ar[ar.index("--resume") + 1]))]
+            ready = [i for i, (ar, o) in enumerate(todo) if os.path.normpath(o) not in busy and
+                     ("--resume" not in ar or os.path.exists(os.path.join(ROOT, ar[ar.index("--resume") + 1])))]
             if not ready:
                 break
             args, out = todo.pop(ready[0])
@@ -73,6 +91,7 @@ def main():
             print(f"[{time.time()-t0:7.0f}s] start {out}", flush=True)
             time.sleep(3)  # let the child exec so system_load() sees it
         time.sleep(5)
+        todo = [(ar, o) for ar, o in todo if not done(os.path.join(ROOT, o))]
         for item in running[:]:
             p, out, log = item
             if p.poll() is not None:
