@@ -13,6 +13,7 @@ python3 scripts/analyze_garg_scale.py   # seed-10 detail, including exact Muon
 python3 scripts/ood_map_linattn.py      # linear attention: query shifts at matched error
 python3 scripts/analyze_schatten_pilot.py  # linear attention: the spectral knob
 python3 scripts/analyze_garg_lr.py      # learning-rate check at Garg scale (Appendix B)
+python3 scripts/analyze_algorithm.py    # H1 algorithm: distance to nearest PCR vs nearest ridge (Table 2)
 ```
 
 **Checkpoints.** `checkpoints/<dir>/<run>.pt` holds the final float32 weights of every GPT-2 run the report uses
