@@ -24,7 +24,7 @@ from icl.analysis import load  # noqa: E402
 
 SETTINGS = {
     "Garg-scale GPT-2 (d = 20)": dict(
-        levels=(0.1, 0.05, 0.04, 0.03), seeds=(10, 11, 12),
+        levels=(0.1, 0.05, 0.04, 0.03), seeds=(10, 11, 12, 13, 14),
         arms=[("SGD", "runs/garg_scale/sgd_s{}.json"), ("AdamW", "runs/garg_scale/adamw_s{}.json"),
               ("Muon", "runs/garg_scale/muon_s{}.json"), ("Muon, p = 1", "runs/garg_scale/muon_pow1_lr0.0005_s{}.json"),
               ("Muon, exact", "runs/garg_scale/muon_exact_s{}.json")]),

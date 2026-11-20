@@ -15,7 +15,7 @@ import torch
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNS = {
     # Garg-scale GPT-2 (12 layers, 8 heads, width 256, d = 20): Figures 1-3, Tables 1 and B
-    "garg_scale": [f"{a}_s{s}" for a in ("sgd", "adamw", "muon", "muon_pow1_lr0.0005") for s in (10, 11, 12)]
+    "garg_scale": [f"{a}_s{s}" for a in ("sgd", "adamw", "muon", "muon_pow1_lr0.0005") for s in (10, 11, 12, 13, 14)]
                   + ["muon_exact_s10"],
     # smaller GPT-2 (4 layers, 4 heads, width 128, d = 8): Table 1, middle column
     "init": [f"{a}_init044_s{s}" for a in ("sgd_lr0.1", "adamw", "muon") for s in (10, 11)],

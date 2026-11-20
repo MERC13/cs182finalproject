@@ -1,4 +1,4 @@
-"""Data behind the report's figures (Garg-scale runs, seeds 10-12). Writes figures/report/*.json.
+"""Data behind the report's figures (Garg-scale runs, seeds 10-14). Writes figures/report/*.json.
 
   python scripts/report_data.py
 
@@ -25,7 +25,7 @@ from analyze_garg_scale import q_matched  # noqa: E402
 
 DIR = os.path.join(ROOT, "runs/garg_scale")
 OUT = os.path.join(ROOT, "figures/report")
-SEEDS = (10, 11, 12)
+SEEDS = (10, 11, 12, 13, 14)
 ARMS = [("SGD", "sgd_s{}.json"), ("AdamW", "adamw_s{}.json"), ("Muon", "muon_s{}.json"),
         ("Muon, p = 1", "muon_pow1_lr0.0005_s{}.json")]
 LEVELS = (0.1, 0.05, 0.04, 0.03)

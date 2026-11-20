@@ -1,5 +1,5 @@
-"""Do H1-H3 hold across seeds at Garg et al.'s scale? Seeds 10-12 (jobs/garg_scale.txt, garg_scale_knob.txt,
-garg_scale_seeds.txt).
+"""Do H1-H3 hold across seeds at Garg et al.'s scale? Seeds 10-14 (jobs/garg_scale.txt, garg_scale_knob.txt,
+garg_scale_seeds.txt, garg_scale_seeds2.txt).
 
   python scripts/analyze_garg_seeds.py
 
@@ -10,7 +10,9 @@ At each matched in-distribution error level (error with 40 examples, relative to
       shifted-query prompts (log-linear interpolation); geometric mean over the rare-ward shifts (t > 0) and over
       the common-ward ones (t < 0). Holds in a seed if Muon's rare-ward ratio < 1 and its common-ward ratio > 1.
   H3  H1's statistic for Muon minus Muon with unflattened updates (p = 1). Holds in a seed if > 0.
-Paired differences per seed are printed with one-sided paired t-tests (n - 1 = 2 degrees of freedom).
+Paired differences per seed are printed with one-sided paired t-tests (n - 1 degrees of freedom).
+Table 3 of the report: shifted-query error at the largest shifts (t = -1, +1) relative to AdamW per seed, AdamW's absolute
+error there, and Muon minus AdamW in absolute terms (printed after the tallies).
 """
 import json
 import os
@@ -25,7 +27,7 @@ from icl.analysis import load  # noqa: E402
 from analyze_garg_scale import q_matched  # noqa: E402
 
 DIR = "runs/garg_scale"
-SEEDS = (10, 11, 12)
+SEEDS = (10, 11, 12, 13, 14)
 ARMS = [("SGD", "sgd_s{}.json"), ("AdamW", "adamw_s{}.json"), ("Muon", "muon_s{}.json"),
         ("Muon, p = 1", "muon_pow1_lr0.0005_s{}.json")]
 LEVELS = (0.1, 0.05, 0.04, 0.03)
@@ -144,8 +146,41 @@ def main():
                          H3=(len(h3_ok), len(h3)), weak={f"{k[0]}|{k[1]}": v for k, v in weak.items()},
                          rare={f"{k[0]}|{k[1]}": v for k, v in rare.items()},
                          common={f"{k[0]}|{k[1]}": v for k, v in common.items()})
+    table3(runs)
     os.makedirs(os.path.join(ROOT, "figures/garg_scale"), exist_ok=True)
     json.dump(tally, open(os.path.join(ROOT, "figures/garg_scale/seeds_summary.json"), "w"), indent=1)
+
+
+def table3(runs, levels=(0.05, 0.04)):
+    """Shifted-query error at t = -1 and t = +1, at matched t = 0 error (q_matched), per seed."""
+    print("\n== Table 3: shifted-query error at t = -1 / t = +1 relative to AdamW (same seed), per seed")
+    for lv in levels:
+        q = {}
+        for (name, s), (_, d) in runs.items():
+            ts, v = q_matched(d, lv)
+            if v is not None:
+                q[name, s] = (v[ts.index(-1.0)], v[ts.index(1.0)])
+        base = {s: q["AdamW", s] for s in SEEDS if ("AdamW", s) in q}
+        print(f"  error {lv}: AdamW absolute error, mean over {len(base)} seeds: "
+              f"t = -1 {np.mean([b[0] for b in base.values()]):.4f}, t = +1 {np.mean([b[1] for b in base.values()]):.3f}")
+        for name, _ in ARMS:
+            ss = [s for s in SEEDS if (name, s) in q and s in base]
+            if not ss or name == "AdamW":
+                continue
+            rm = [q[name, s][0] / base[s][0] for s in ss]
+            rp = [q[name, s][1] / base[s][1] for s in ss]
+            print(f"  {name:12s} n={len(ss)}  t = -1: " + " ".join(f"{x:.3f}" for x in rm)
+                  + f"  (range {min(rm):.2f}-{max(rm):.2f})   t = +1: " + " ".join(f"{x:.3f}" for x in rp)
+                  + f"  (range {min(rp):.2f}-{max(rp):.2f})")
+        ss = [s for s in SEEDS if ("Muon", s) in q and s in base]
+        if ss:
+            dm = np.mean([q["Muon", s][0] - base[s][0] for s in ss])
+            dp = np.mean([q["Muon", s][1] - base[s][1] for s in ss])
+            print(f"  Muon - AdamW, absolute, mean over {len(ss)} seeds: t = -1 {dm:+.4f}, t = +1 {dp:+.3f}")
+        ss = [s for s in SEEDS if ("Muon", s) in q and ("SGD", s) in q]
+        if ss:
+            print(f"  Muon / SGD (n={len(ss)}): t = -1 " + " ".join(f"{q['Muon', s][0] / q['SGD', s][0]:.3f}" for s in ss)
+                  + "   t = +1 " + " ".join(f"{q['Muon', s][1] / q['SGD', s][1]:.3f}" for s in ss))
 
 
 if __name__ == "__main__":
