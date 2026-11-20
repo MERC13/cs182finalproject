@@ -8,3 +8,5 @@
 [      3s] start runs/garg_scale/muon_pow1_lr0.0005_s14.json
 [      6s] start runs/garg_scale/sgd_s13.json
 [      9s] start runs/garg_scale/adamw_s13.json
+[   3827s] end   runs/garg_scale/sgd_s13.json: done val=0.13954 wall=10713.5
+[   3827s] start runs/garg_scale/sgd_s14.json
