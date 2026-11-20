@@ -1,0 +1,5 @@
+8 jobs, 8 to run
+[      0s] start runs/garg_scale/muon_pow1_lr0.0005_s13.json
+[      3s] start runs/garg_scale/muon_pow1_lr0.0005_s14.json
+[      6s] start runs/garg_scale/sgd_s13.json
+[      9s] start runs/garg_scale/adamw_s13.json
