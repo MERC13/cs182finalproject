@@ -8,7 +8,7 @@ Everything in the final report's results comes from the committed JSON logs; no 
 
 ```bash
 python3 scripts/report_data.py          # Figures 1-3 data -> figures/report/*.json
-python3 scripts/analyze_garg_seeds.py   # Section 4 statistics (three seeds, matched errors)
+python3 scripts/analyze_garg_seeds.py   # Section 4 statistics (five seeds, matched errors)
 python3 scripts/analyze_garg_scale.py   # seed-10 detail, including exact Muon
 python3 scripts/ood_map_linattn.py      # linear attention: query shifts at matched error
 python3 scripts/analyze_schatten_pilot.py  # linear attention: the spectral knob
