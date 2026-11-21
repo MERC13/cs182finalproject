@@ -46,7 +46,7 @@ def jl(name):
 
 def fig_loss():
     rows = jl("report/curves.json")
-    fig, axs = plt.subplots(1, 2, figsize=(W, 2.15), sharey=True)
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.75), sharey=True)
     for ax, key, title in ((axs[0], "train", "Training loss"), (axs[1], "val", "Validation loss (1,000 held-out prompts)")):
         for arm in ORDER:
             r = [x for x in rows if x["arm"] == arm and (arm != "Muon" or x["step"] <= 2000)]
@@ -86,7 +86,7 @@ def per_direction_diff(level=0.04):
 def fig_h1():
     rows = jl("report/h1.json")
     levels = [0.1, 0.05, 0.04, 0.03]
-    fig, axs = plt.subplots(1, 2, figsize=(W, 2.2), gridspec_kw=dict(width_ratios=[1.05, 1]))
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.85), gridspec_kw=dict(width_ratios=[1.05, 1]))
     ax = axs[0]
     off = {"SGD": -0.27, "AdamW": -0.09, "Muon, p = 1": 0.09, "Muon": 0.27}
     for arm in ORDER:
@@ -127,7 +127,7 @@ def fig_h1():
 
 def fig_h2():
     rows = jl("report/h2.json")
-    fig, axs = plt.subplots(1, 2, figsize=(W, 2.2), sharey=True)
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.8), sharey=True)
     off = {"SGD": -0.04, "Muon": 0.0, "Muon, p = 1": 0.04}
     for ax, lv in zip(axs, (0.05, 0.04)):
         for arm in ("SGD", "Muon, p = 1", "Muon"):
@@ -168,7 +168,7 @@ def fig_linattn():
             ("muon_pow0.5", "$p=0.5$", "#5aa9c9", "-"), ("muon_pow0.25", "$p=0.25$", "#3d8fd6", "-"),
             ("muon_pow0.1", "$p=0.1$", "#2a6fc0", "-"), ("muon_exact", "$p=0$ (exact)", "#0b3d91", "-"),
             ("muon", "Muon (Newton–Schulz)", "#1f6fd1", "--")]
-    fig, axs = plt.subplots(1, 2, figsize=(W, 2.15), gridspec_kw=dict(width_ratios=[1.0, 0.85]))
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.8), gridspec_kw=dict(width_ratios=[1.0, 0.85]))
     ax = axs[0]
     for key, name, c, ls in arms:
         r = d[f"1/i2-ali|{key}"]

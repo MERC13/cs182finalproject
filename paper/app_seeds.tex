@@ -22,3 +22,21 @@ Error & Comparison & Seed 10 & Seed 11 & Seed 12 & Seed 13 & Seed 14 & Mean & $p
 \end{table}
 
 Read at exactly each error level (linear interpolation between the two evaluations that bracket the first crossing), the mean differences are: Muon $-$ AdamW $+0.069$, $+0.063$, $+0.086$ at errors 0.05, 0.04, 0.03 (all $p<0.001$); Muon $-$ SGD $+0.058$ ($p=0.024$) and $+0.036$ ($p=0.037$); Muon $-$ ($p=1$) $+0.063$, $+0.048$, $+0.083$ ($p \le 0.006$).
+
+\textbf{Exact orthogonalization.} The run with $p=0$ computed by SVD (seed 10 only) behaves like standard Muon in the same seed: 450 against 500 steps to error 0.05; weak-direction fraction 0.12, 0.21 and 0.35 against 0.16, 0.21 and 0.32 at errors 0.05, 0.04 and 0.03; and query-shift ratios to AdamW within 10\% of standard Muon's at every shift at errors 0.05 and 0.04.
+
+\begin{table}[h]
+\caption{\textbf{H2 at the largest shifts.} Error relative to AdamW in the same seed, range over seeds 10--14 (SGD at error 0.04: two seeds). First row: AdamW's absolute error, mean over seeds.}
+\label{tab:h2}
+\centering\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & Error 0.05, $t=-1$ & Error 0.05, $t=+1$ & Error 0.04, $t=-1$ & Error 0.04, $t=+1$ \\
+\midrule
+AdamW (absolute) & 0.009 & 0.89 & 0.007 & 0.83 \\
+Muon & 1.27--2.34$\times$ & 0.91--1.00$\times$ & 1.16--1.78$\times$ & 0.93--1.00$\times$ \\
+SGD & 0.81--2.32$\times$ & 0.97--0.99$\times$ & 0.88--0.92$\times$ & 0.97--1.01$\times$ \\
+Muon, $p=1$ & 0.57--1.28$\times$ & 0.97--1.02$\times$ & 0.79--1.07$\times$ & 0.99--1.02$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}

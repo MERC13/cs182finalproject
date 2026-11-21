@@ -33,7 +33,7 @@ CS 182 final project, draft
 \maketitle
 
 \begin{abstract}
-In-context learning (ICL) lets a transformer learn a new task from examples in its prompt without changing its weights. Prior work explains how ICL emerges through the data and the architecture, but rarely through the optimizer that trains the weights. We train GPT-2 models of Garg et al.'s size, a smaller GPT-2 and a one-layer linear-attention model on in-context linear regression whose inputs vary much more in some directions than others, using SGD, AdamW and Muon, and compare them at equal in-distribution error. At Garg et al.'s scale, Muon has learned more of the low-variance input directions than AdamW in all five seeds, at a small cost on the high-variance ones, and its predictions are closer to ridge regression while AdamW's are closer to principal component regression, though only by degree. Out of distribution, Muon's error relative to AdamW's rises on queries shifted toward high-variance directions and, in most seeds, falls on queries shifted toward low-variance ones. A knob that flattens Muon's update spectrum by degrees points to the cause: without flattening, Muon behaves like AdamW and loses most of its threefold speed-up, and in linear attention the effects grow as the spectrum is flattened. The optimizer changes not only how fast ICL emerges but also, by degree, which in-context algorithm is learned.
+Prior work explains how in-context learning (ICL) emerges through the data and the architecture, but rarely through the optimizer. We train transformers on in-context linear regression whose inputs vary much more in some directions than others, using SGD, AdamW and Muon, and compare them at equal in-distribution error. In GPT-2 models of Garg et al.'s size, Muon has learned more of the low-variance input directions than AdamW in all five seeds, at a small cost on the high-variance ones, and its predictions are closer to ridge regression while AdamW's are closer to principal component regression, though only by degree. Out of distribution, Muon's error relative to AdamW's rises on queries shifted toward high-variance directions and, in most seeds, falls on queries shifted toward low-variance ones. A knob that flattens Muon's update spectrum by degrees points to the cause: without flattening, Muon behaves like AdamW and loses most of its threefold speed-up, and in a one-layer linear-attention model the effects grow as the spectrum is flattened. The optimizer changes not only how fast ICL emerges but also, by degree, which in-context algorithm is learned.
 \end{abstract}
 
 \section{Introduction}
@@ -54,9 +54,9 @@ Our hypotheses:
 \item[\textbf{H3.}] Raising the singular values of Muon's update to a power $p$, from $p=1$ (the update's own spectrum) to $p=0$ (fully flat), will move the learned predictor from PCR toward ridge regression and strengthen both effects in H2.
 \end{itemize}
 
-\textbf{Contributions.} (i) A controlled comparison of SGD, AdamW and Muon on the same GPT-2, data stream and evaluation prompts, read at matched in-distribution error, in three settings: Garg et al.'s model size (five seeds), a smaller GPT-2 and a one-layer linear-attention model whose losses are exact. (ii) Three measurements of \emph{which} in-context algorithm a model runs: how much of each input direction it has learned, which reference estimator (PCR or ridge) its predictions are closest to, and how its error changes when test queries are shifted toward rare or common directions. (iii) A causal test with a spectral-flattening knob that interpolates between momentum SGD and Muon. (iv) Code, logs and checkpoints that regenerate every table and figure.
+\textbf{Contributions.} (i) A controlled comparison of SGD, AdamW and Muon on the same model, data stream and evaluation prompts, read at matched in-distribution error, in three settings: Garg et al.'s model size (five seeds), a smaller GPT-2 and a one-layer linear-attention model with exact losses. (ii) Three measurements of which in-context algorithm a model runs: how much of each input direction it has learned, which reference estimator its predictions are closest to, and how its error changes when queries shift toward rare or common directions. (iii) A causal test with a knob that interpolates between momentum SGD and Muon.
 
-\textbf{Summary of findings.} Against AdamW, the results in all three settings point the predicted way. The clean PCR-versus-ridge split, however, appears only in linear attention with exact orthogonalization; in the GPT-2s the difference is one of degree, SGD is not PCR-like, and Muon's out-of-distribution advantage over SGD holds only in the smaller models. Our runs are too short to test whether all optimizers end near least squares.
+\textbf{Findings in brief.} Against AdamW, all three settings point the predicted way, but the clean PCR-versus-ridge split appears only in linear attention; in the GPT-2s the difference is one of degree, SGD is not PCR-like, and Muon's out-of-distribution advantage over SGD holds only in the smaller models.
 
 \section{Related work}
 \label{sec:related}
@@ -139,7 +139,7 @@ For a weight matrix $W$ with stochastic gradient $G_t$:
 M = U S V^\top \;\longmapsto\; \sqrt{\min(m,n)}\; \frac{U S^{p} V^\top}{\|U S^{p} V^\top\|_F} ,
 \label{eq:knob}
 \end{equation}
-rescaled to the Frobenius norm of an $m\times n$ orthogonal matrix. At $p = 1$ the update keeps the momentum's own spectrum (momentum SGD with a per-matrix normalized step); at $p = 0$ it is the exact polar factor that Muon approximates. In between, Eq.~\eqref{eq:knob} is steepest descent under a Schatten norm \citep{bernstein2024old,dong2026muonp}. Standard Muon (Newton--Schulz) is close to, but not exactly, $p=0$. We run $p \in \{1, 0.75, 0.5, 0.25, 0.1, 0\}$ in linear attention, $p \in \{1, 0.25, 0\}$ in the small GPT-2 and $p\in\{1, 0\}$ plus standard Muon at Garg scale.
+rescaled to the Frobenius norm of an $m\times n$ orthogonal matrix. At $p = 1$ the update keeps the momentum's own spectrum (momentum SGD with a per-matrix normalized step); at $p = 0$ it is the exact polar factor that Muon approximates. In between, Eq.~\eqref{eq:knob} is steepest descent under the Schatten norm with exponent $1+1/p$ \citep{dong2026muonp}, which runs from the Frobenius norm at $p=1$ to the spectral norm at $p=0$ \citep{bernstein2024old}. Standard Muon (Newton--Schulz) is close to, but not exactly, $p=0$. We run $p \in \{1, 0.75, 0.5, 0.25, 0.1, 0\}$ in linear attention, $p \in \{1, 0.25, 0\}$ in the small GPT-2 and $p\in\{1, 0\}$ plus standard Muon at Garg scale \inprog{$p = 0.25$ at Garg scale, planned for the final version}.
 
 \subsection{Measurements}
 \label{sec:measure}
@@ -152,7 +152,7 @@ rescaled to the Frobenius norm of an $m\times n$ orthogonal matrix. At $p = 1$ t
 \text{ridge:}\quad \hat y &= x_q^\top (X^\top X + \alpha I)^{-1} X^\top y, \qquad \alpha \in \{10^{-3}, 3\cdot 10^{-3}, \dots, 100\},\\
 \text{PCR}_m:\quad \hat y &= (U_m^\top x_q)^\top (Z^\top Z + s_m I)^{-1} Z^\top y, \qquad Z = X U_m,\; s_m = \textstyle\sum_{j>m}\lambda_j,
 \end{align}
-where $U_m$ holds the top $m$ population directions, $m = 1,\dots,20$. (PCR$_m$ is ridge restricted to the top $m$ directions, treating the omitted ones as noise of variance $s_m$; plain least squares in the subspace diverges when the number of examples is near $m$.) Ridge shrinks every direction smoothly by $\lambda_j/(\lambda_j+\alpha)$; PCR keeps the top $m$ directions and drops the rest. We report the mean squared distance between the model's predictions and the nearest PCR reference, divided by that to the nearest ridge reference, averaged over predictions with 8--40 examples: above 1 means closer to ridge. In linear attention we instead fit a PCR step and a ridge shrinkage curve to the profile $\rho_j/\rho_j^\star$ along the training path and report the ratio of their residuals.
+where $U_m$ holds the top $m$ population directions, $m = 1,\dots,20$. PCR$_m$ is ridge restricted to the top $m$ directions, treating the omitted ones as noise of variance $s_m$ (plain least squares in the subspace diverges when the number of examples is near $m$). Ridge shrinks every direction smoothly; PCR keeps the top $m$ and drops the rest. We report the mean squared distance between the model's predictions and the nearest PCR reference, divided by that to the nearest ridge reference, averaged over predictions with 8--40 examples: above 1 means closer to ridge. In linear attention we instead fit a PCR step and a ridge shrinkage curve to the profile $\rho_j/\rho_j^\star$ along the training path and report the ratio of their residuals.
 
 \textbf{Query shift (H2).} We keep the task and the context examples and draw only the query from $\mathcal{N}(0, \Lambda^{1-2t})$, rescaled to trace $d$, for $t \in \{-1, -0.5, 0, 0.25, 0.5, 0.75, 1\}$ (256 prompts). $t = 0$ is the training distribution, $t > 0$ moves the query's variance toward low-variance directions (``rare-ward'') and $t<0$ toward high-variance ones (``common-ward''). Each run is read where its unshifted ($t=0$) error on these prompts crosses the matched level (log-linear interpolation between evaluations, every 100 steps), and we report its shifted error divided by AdamW's in the same seed. Because unshifted errors are matched exactly, comparing shifted errors is the same as comparing error increases.
 
@@ -196,7 +196,7 @@ Muon, $p=1$ & lr $5\cdot10^{-4}$ & Chosen by eye at this scale; checked \\
 \section{Results}
 \label{sec:results}
 
-Table~\ref{tab:summary} summarizes the three settings; the rest of this section gives the Garg-scale numbers. At Garg et al.'s scale H1 holds against AdamW at errors 0.05--0.03, in both weak-direction learning and the predictor's shape; against SGD, Muon's lead in weak-direction learning is smaller and borderline, and SGD is not PCR-like as predicted. H2's common-ward cost holds against AdamW in every seed and its rare-ward gain in four of five seeds at error 0.04 and three of five at 0.05; against SGD only the common-ward cost appears in most seeds. H3 holds at the two ends of the knob.
+Table~\ref{tab:summary} summarizes the three settings; the rest of this section gives the Garg-scale numbers and the linear-attention knob.
 
 \begin{table}[t]
 \caption{\textbf{Results in three settings.} PCR: principal component regression. ``Common-ward'' and ``rare-ward'': queries shifted toward high- and low-variance directions. Linear-attention levels are excess loss above the model's best achievable loss.}
@@ -208,7 +208,7 @@ Table~\ref{tab:summary} summarizes the three settings; the rest of this section 
 \midrule
 H1 & Yes: SGD, Adam and $p=1$ keep only the two to four strongest directions, like PCR; $p=0$ (exact) learns every direction partly, like ridge; standard Muon is in between & Partly: weakest direction 0.61 (Muon), 0.50 (SGD), 0.39 (AdamW), but every optimizer is closer to ridge than to PCR & Vs AdamW: yes (more weak directions in 5/5 seeds; closer to ridge in 15/15 seed $\times$ error pairs, AdamW in 3/15). Vs SGD: smaller, borderline lead ($p = 0.03$--$0.06$); SGD is also mostly closer to ridge (9/10) \\
 \addlinespace
-H2 & Vs Adam at excess loss 0.1: yes ($1.28$--$1.39\times$ common-ward, $0.92$--$0.95\times$ rare-ward); at 0.05 only the rare-ward gain remains. Vs SGD: yes at 0.1 (2 seeds) & Yes vs AdamW and SGD (one seed); vs AdamW 4--36\% higher common-ward, 2--31\% lower rare-ward & Vs AdamW: common-ward cost in 5/5 seeds; rare-ward gain in 4/5 at error 0.04 and 3/5 at 0.05. Vs SGD: common-ward cost in most seeds, no consistent rare-ward gain \\
+H2 & Vs Adam at excess loss 0.1: yes ($1.28$--$1.39\times$ common-ward, $0.92$--$0.95\times$ rare-ward); at 0.05 only the rare-ward gain. Vs SGD: yes at 0.1 (2 seeds) & Yes vs AdamW and SGD (one seed); vs AdamW 4--36\% higher common-ward, 2--31\% lower rare-ward & Vs AdamW: common-ward cost in 5/5 seeds; rare-ward gain in 4/5 at error 0.04 and 3/5 at 0.05. Vs SGD: common-ward cost in most seeds, no consistent rare-ward gain \\
 \addlinespace
 H3 & Yes, mostly below $p = 0.25$: the predictor moves from PCR-like to ridge-like, the weak-direction fraction rises from 0.03 to 0.20 and the rare-ward gain grows; the common-ward cost appears mainly at $p = 0$ & Partly (one seed): weak-direction fraction 0.72, 0.82, 0.83 at $p = 1, 0.25, 0$, but every $p$ is closer to ridge, with no trend & At the ends: $p = 1$ behaves like AdamW (mostly closer to PCR, no consistent common-ward cost, at most 3\% rare-ward gain); intermediate $p$ not run \\
 \bottomrule
@@ -227,19 +227,19 @@ Figure~\ref{fig:loss} shows training and validation loss. They coincide because 
 
 \subsection{H1: Muon learns more of the weak directions and is closer to ridge regression}
 
-Figure~\ref{fig:h1}a and Table~\ref{tab:h1} show the weak-direction fraction at matched error. Muon leads AdamW in every seed at errors 0.05, 0.04 and 0.03, by $+0.07$ to $+0.08$ ($p \le 0.002$). Reading each run at exactly the error level, by interpolating between evaluations, changes the mean gaps by about 0.01 at most (single seeds by up to 0.03), and Muon still leads in every seed. Figure~\ref{fig:h1}b shows where the lead comes from: at error 0.04, directions 12--15 ($+0.15$ to $+0.85$), while Muon is slightly behind on directions 1--10 and 17--20 (by up to 0.06). The band moves to weaker directions as error falls. Against SGD the lead is smaller: $+0.05$ and $+0.04$ at errors 0.05 and 0.04 ($p = 0.057$ and $0.034$), positive in four and five of five seeds. At error 0.1 every optimizer has learned only the first six to eight directions and Muon and AdamW do not differ.
+Muon leads AdamW in every seed at errors 0.05--0.03, by $+0.07$ to $+0.08$ ($p \le 0.002$; Figure~\ref{fig:h1}a, Table~\ref{tab:h1}). Reading each run at exactly the error level, by interpolating between evaluations, changes the mean gaps by about 0.01 at most, and Muon still leads in every seed. The lead comes from the directions just beyond those every optimizer has learned (Figure~\ref{fig:h1}b: directions 12--15 at error 0.04, by $+0.15$ to $+0.85$), while Muon is slightly behind on the others (by up to 0.06); this band moves to weaker directions as error falls. Against SGD the lead is smaller and borderline ($+0.05$ and $+0.04$, $p = 0.057$ and $0.034$). At error 0.1 every optimizer has learned only the first six to eight directions, and Muon and AdamW do not differ.
 
-The last column of Table~\ref{tab:h1} asks which algorithm the predictions resemble. Muon's are closer to ridge than to any PCR reference in every seed and level; AdamW's and unflattened Muon's are mostly closer to PCR, and SGD's mostly to ridge. The margins are modest (ratios 0.79--1.42), and every optimizer still leaves directions 17--20 unlearned, so the split is one of degree.
+Muon's predictions are closer to ridge than to any PCR reference in every seed and level; AdamW's and unflattened Muon's are mostly closer to PCR, and SGD's mostly to ridge (Table~\ref{tab:h1}, last column). The margins are modest and every optimizer still leaves directions 17--20 unlearned, so the split is one of degree.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_h1.pdf}
-\caption{\textbf{H1 at Garg scale.} (a) Fraction learned, averaged over directions 3--20, at the first evaluation where each run reaches the matched error; filled marker: mean over seeds 10--14, bar: $\pm1$ s.d., open circles: seeds. (b) Muon minus AdamW, per direction, at matched error 0.04 (mean $\pm1$ s.d.\ of the paired difference over seeds).}
+\caption{\textbf{H1 at Garg scale.} (a) Fraction learned, averaged over directions 3--20, at matched error; filled marker: mean over seeds 10--14, bar: $\pm1$ s.d., circles: seeds. (b) Muon minus AdamW per direction at error 0.04 (mean $\pm1$ s.d.\ of the paired difference).}
 \label{fig:h1}
 \end{figure}
 
 \begin{table}[t]
-\caption{\textbf{H1 at Garg scale.} Columns 3--5: weak-direction fraction at the first evaluation at or below each error, mean $\pm$ s.d.\ over seeds 10--14; difference rows are paired by seed, with one-sided paired $t$-tests (4 degrees of freedom; per-seed values in Appendix~\ref{app:seeds}). Last column: distance to the nearest PCR reference over distance to the nearest ridge reference (above 1: closer to ridge), range over seeds and errors 0.05--0.03, with the count above 1. SGD does not reach error 0.03 within 4,000 steps.}
+\caption{\textbf{H1 at Garg scale.} Columns 3--5: weak-direction fraction at matched error, mean $\pm$ s.d.\ over seeds 10--14; differences are paired by seed, with one-sided paired $t$-tests (4 d.f.; per-seed values in Appendix~\ref{app:seeds}). Last column: nearest-PCR over nearest-ridge distance (above 1: closer to ridge), range over seeds and errors 0.05--0.03, with the count above 1. SGD never reaches error 0.03.}
 \label{tab:h1}
 \centering\footnotesize
 \setlength{\tabcolsep}{2.5pt}
@@ -261,9 +261,7 @@ Muon $-$ ($p{=}1$) & & $+0.07$ ($p{=}0.005$) & $+0.06$ ($p{=}0.002$) & $+0.07$ (
 
 \subsection{H2: a lopsided trade-off out of distribution}
 
-Figure~\ref{fig:h2} and Table~\ref{tab:h2} show errors on shifted queries relative to AdamW. Muon is worse than AdamW at $t = -1$ in every seed at both errors, and better at $t = +1$ in four of five seeds (seed 14 is level). Averaged over all shifts toward low-variance directions, it is better in four of five seeds at error 0.04 and three of five at 0.05. Muon with $p = 1$ shows no consistent cost at $t=-1$; SGD shows one at error 0.05 (four of five seeds) but not at 0.04 (two seeds). Against SGD, Muon's error at $t=-1$ is higher in six of the seven seed $\times$ error pairs where SGD reaches the level, but its advantage at $t=+1$ is small (at most 8\%) and not consistent across seeds.
-
-The relative sizes mislead. Errors at $t=-1$ are tiny, so Muon's cost there averages only $+0.003$ (error 0.04) to $+0.006$ (error 0.05); errors at $t=+1$ are large, so its average gain of about $-0.03$ to $-0.04$ is the larger absolute effect. We plot ratios on a log scale so that a cost and a gain of the same factor look the same size.
+Muon is worse than AdamW at $t=-1$ in every seed at both errors and better at $t=+1$ in four of five seeds (seed 14 is level; Figure~\ref{fig:h2}; ranges in Table~\ref{tab:h2}, Appendix~\ref{app:seeds}). Averaged over all shifts toward low-variance directions, it is better in four of five seeds at error 0.04 and three of five at 0.05. Muon with $p=1$ shows no consistent common-ward cost. Against SGD, Muon's common-ward cost appears in six of the seven seed $\times$ error pairs where SGD reaches the level, but its rare-ward advantage is small (at most 8\%) and inconsistent. The relative sizes mislead: errors at $t=-1$ are tiny, so Muon's cost there averages only $+0.003$ to $+0.006$, while errors at $t=+1$ are large, so its average gain of about $-0.03$ to $-0.04$ is the larger absolute effect. We plot ratios on a log scale so that a cost and a gain of the same factor look the same size.
 
 \begin{figure}[t]
 \centering
@@ -272,29 +270,14 @@ The relative sizes mislead. Errors at $t=-1$ are tiny, so Muon's cost there aver
 \label{fig:h2}
 \end{figure}
 
-\begin{table}[t]
-\caption{\textbf{H2 at the largest shifts.} Error relative to AdamW in the same seed, range over seeds 10--14 (SGD at error 0.04: two seeds). First row: AdamW's absolute error, mean over seeds.}
-\label{tab:h2}
-\centering\small
-\begin{tabular}{@{}lcccc@{}}
-\toprule
- & Error 0.05, $t=-1$ & Error 0.05, $t=+1$ & Error 0.04, $t=-1$ & Error 0.04, $t=+1$ \\
-\midrule
-AdamW (absolute) & 0.009 & 0.89 & 0.007 & 0.83 \\
-Muon & 1.27--2.34$\times$ & 0.91--1.00$\times$ & 1.16--1.78$\times$ & 0.93--1.00$\times$ \\
-SGD & 0.81--2.32$\times$ & 0.97--0.99$\times$ & 0.88--0.92$\times$ & 0.97--1.01$\times$ \\
-Muon, $p=1$ & 0.57--1.28$\times$ & 0.97--1.02$\times$ & 0.79--1.07$\times$ & 0.99--1.02$\times$ \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{H3: spectral flattening is the cause}
 
-At Garg scale, Muon without flattening ($p=1$) looks like AdamW: nearly the same weak-direction fraction (Table~\ref{tab:h1}), predictions mostly closer to PCR, no consistent cost at $t=-1$ and at most a 3\% gain at $t=+1$ (Table~\ref{tab:h2}), and most of the speed-up gone. Standard Muon leads it in every seed at errors 0.05--0.03 ($p = 0.001$--$0.005$), also when each run is read at exactly the error level. Exact orthogonalization ($p=0$ by SVD, seed 10 only) is similar to standard Muon in the same seed: 450 against 500 steps to error 0.05, weak-direction fraction 0.12, 0.21 and 0.35 against 0.16, 0.21 and 0.32, and query-shift ratios within 10\% of standard Muon's.
+At Garg scale, Muon without flattening ($p=1$) looks like AdamW: nearly the same weak-direction fraction (Table~\ref{tab:h1}), predictions mostly closer to PCR, no consistent cost at $t=-1$ and at most a 3\% gain at $t=+1$ (Table~\ref{tab:h2}), and most of the speed-up gone. Standard Muon leads it in every seed at errors 0.05--0.03 ($p = 0.001$--$0.005$), also when each run is read at exactly the error level. Exact orthogonalization ($p=0$ by SVD, one seed) behaves like standard Muon in the same seed (Appendix~\ref{app:seeds}).
 
 Only the linear-attention model lets us vary $p$ finely (Figure~\ref{fig:linattn}). There SGD, Adam and $p=1$ learn the two strongest directions and almost nothing else, a PCR-like step; as $p$ falls below 0.25 the profile spreads to the weaker directions and the fit moves from PCR-like (residual ratio 0.06 at $p=1$) to ridge-like (4.65 at $p=0$). Standard Newton--Schulz Muon sits in between (0.78), closer to $p = 0.25$ than to $p = 0$.
 
-\begin{figure}[t]
+\begin{figure}[!t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_linattn.pdf}
 \caption{\textbf{Linear attention, $\lambda_j \propto 1/j^2$, $d=8$.} (a) Fraction of the optimal gain learned per direction when the excess loss first reaches 0.1 (median over 3 seeds). (b) PCR residual divided by ridge residual of that profile, averaged along the training path, against the spectral power $p$ (log scale; above 1: closer to ridge); horizontal lines: SGD, Adam and standard Muon.}
@@ -304,13 +287,11 @@ Only the linear-attention model lets us vary $p$ finely (Figure~\ref{fig:linattn
 \section{Discussion and conclusion}
 \label{sec:discussion}
 
-The optimizer changes the path to least squares, not only its speed. At equal error, Muon's predictor is closer to ridge regression and AdamW's to PCR, though outside linear attention only by degree. Muon has also partly learned directions 12--15 at a small cost on most of the others, and its spectral flattening is the cause: removing it removes the effect and most of the speed-up. Matching total error forces this trade, and the query shifts expose both sides of it. Errors along the strong directions are tiny, so Muon's small extra error there is a large relative cost; the weakest directions (17--20) are still unlearned by every optimizer at these error levels, so queries that lean on them have large errors and Muon's gain of about 0.03--0.04 there is only a few percent. At equal steps Muon is simply further along: at step 2,000 its shifted-query error is 0.26--0.71 of AdamW's for every shift and seed.
+The optimizer changes the path to least squares, not only its speed. At equal error, Muon's predictor is closer to ridge regression and AdamW's to PCR, though outside linear attention only by degree; Muon has partly learned the next band of weak directions at a small cost on the others, and spectral flattening is the cause. The query shifts expose both sides of this trade: errors along the strong directions are tiny, so Muon's small extra error there is a large relative cost, while the weakest directions are unlearned by every optimizer, so its gain there is only a few percent. At equal steps, by contrast, Muon is simply further along: at step 2,000 its shifted-query error is 0.26--0.71 of AdamW's for every shift and seed.
 
-Why does AdamW not behave like Muon, given that it also normalizes its updates? AdamW normalizes per coordinate of the weight matrices \citep{xie2025adam}. After a random read-in, each input direction is spread across many hidden coordinates, so per-coordinate normalization does not equalize input directions; Muon's normalization acts on the singular directions of each update, which is closer to what matters here. SGD sits between the two: it is behind Muon on the weak directions by a borderline margin, and its predictions are not PCR-like, unlike in linear attention. Batch-64 noise, which can restore sequential learning \citep{jacobs2026}, and the multi-layer architecture are two candidate reasons; we have not separated them.
+Why does AdamW not behave like Muon, given that it also normalizes its updates? AdamW normalizes per coordinate of the weight matrices \citep{xie2025adam}; after a random read-in each input direction is spread across many hidden coordinates, so per-coordinate normalization need not equalize input directions, whereas Muon equalizes the singular directions of each update. Unlike in linear attention, SGD is not PCR-like here; batch-64 noise, which can restore sequential learning \citep{jacobs2026}, and depth are candidate reasons we have not separated.
 
-\textbf{Limitations.} Five seeds per optimizer (one for exact Muon), so $p$-values from 4 degrees of freedom are only indicative. Training is short (at most 4,000 steps, against Garg et al.'s 500,000), so we cannot test whether all optimizers end near least squares. Learning rates were checked at Garg scale only briefly (one seed, 1,500 steps), and AdamW's was slightly low (Appendix~\ref{app:lr}). We test one task and one input spectrum at this scale. The algorithm comparison is coarse: the nearest PCR and ridge references are close to each other compared with their distance from the models.
-
-\textbf{Planned for the final version.} \inprog{an intermediate knob setting ($p = 0.25$) at Garg scale, three seeds, to test whether H3's effect is graded at full scale.}
+\textbf{Limitations.} Five seeds per optimizer (one for exact Muon), so $p$-values are only indicative. Training is short (at most 4,000 steps, against Garg et al.'s 500,000), so we cannot test whether all optimizers end near least squares. Learning rates were checked at Garg scale only briefly, and AdamW's was slightly low (Appendix~\ref{app:lr}). We test one task and one input spectrum. The algorithm comparison is coarse: the nearest PCR and ridge references are close to each other relative to the models. Gradedness in $p$ is untested at full scale.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
@@ -324,7 +305,7 @@ Why does AdamW not behave like Muon, given that it also normalizes its updates? 
 \label{app:lr}
 \input{app_lr}
 
-\section{Per-seed results}
+\section{Per-seed and supplementary results}
 \label{app:seeds}
 \input{app_seeds}
 
