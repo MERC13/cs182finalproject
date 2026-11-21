@@ -4,3 +4,11 @@
 *.json.tmp
 __pycache__/
 *.pyc
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.blg
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+paper/*.bbl

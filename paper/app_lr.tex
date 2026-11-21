@@ -1,0 +1,19 @@
+\textbf{How the rates were chosen.} Sweeps on the first version of the smaller GPT-2 (seed 0) kept the rate with the lowest area under the error curve on separate selection prompts. AdamW won at $5\times10^{-4}$; Muon's 0.007 tied 0.01 on area and had the lower final error. SGD did not train in that model at any rate, so 0.1 with gradient clipping was carried over; in the redesigned model (Section~3.2) it beat 0.3. These rates were reused at Garg scale, except that AdamW used $3\times10^{-4}$, an earlier pilot value tuned on isotropic inputs. Unflattened Muon ($p=1$) used $5\times10^{-4}$ after 0.007 stalled and 0.002 was noisy. In the linear-attention model every arm had its own six-point sweep on seed 0, selected by mean loss over training (Appendix~\ref{app:small}).
+
+\textbf{Check at Garg scale.} We trained seed 10 for 1,500 steps at rates about $3\times$ below and above each rate used, plus AdamW at $5\times10^{-4}$ (the smaller model's choice), and compared training loss over steps 1,400--1,500 (Table~\ref{tab:lr}). Every training prompt is new, so this estimates the population loss without touching the evaluation prompts; the rates used are read from the main runs at the same steps (the schedule is constant after warm-up, so their first 1,500 steps are identical to a 1,500-step run). The rate used was best for unflattened Muon. Muon's best rate (0.0025) was 0.7\% lower and SGD's (0.03) 0.4\% lower. AdamW's rate was slightly low: $5\times10^{-4}$ and $10^{-3}$ gave 1.5\% and 1.4\% lower loss, but the same error at step 1,500 (0.052--0.053), and first reached error 0.05 only 50 steps sooner (step 1,350 against 1,400). At error 0.05, Muon leads AdamW for every pair of rates that reach that error by step 1,500: its weak-direction fraction is 0.11--0.19 at its three rates, against 0.05--0.07 for AdamW at $3\times10^{-4}$, $5\times10^{-4}$ and $10^{-3}$ (interpolated to exactly 0.05: 0.10--0.14 against 0.06--0.07). AdamW at $10^{-4}$ and every SGD rate stay above error 0.05 through step 1,500, so H1 against SGD, and at lower errors, was not checked.
+
+\begin{table}[h]
+\caption{\textbf{Learning-rate check at Garg scale}, seed 10; training loss averaged over steps 1,400--1,500. The rate used in the main runs is in bold. $p=1$ at 0.007 is an earlier run stopped at step 1,500.}
+\label{tab:lr}
+\centering\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Optimizer & Learning rates & Training loss \\
+\midrule
+SGD & 0.03, \textbf{0.1}, 0.3 & 0.1747, \textbf{0.1755}, 0.2092 \\
+AdamW & $10^{-4}$, $\mathbf{3\cdot10^{-4}}$, $5\cdot10^{-4}$, $10^{-3}$ & 0.1659, \textbf{0.1501}, 0.1479, 0.1480 \\
+Muon & 0.0025, \textbf{0.007}, 0.02 & 0.1160, \textbf{0.1168}, 0.1339 \\
+Muon, $p=1$ & $1.5\cdot10^{-4}$, $\mathbf{5\cdot10^{-4}}$, $1.5\cdot10^{-3}$, 0.007 & 0.1571, \textbf{0.1451}, 0.1523, 0.3475 \\
+\bottomrule
+\end{tabular}
+\end{table}
