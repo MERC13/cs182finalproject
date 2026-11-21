@@ -78,6 +78,41 @@ def main():
                 cells.append(f"s{s}: {'missing':21s}")
         print(f"  {name:12s} " + "   ".join(cells))
 
+    print("\nfirst step at each error, per seed; and AdamW / Muon step ratio")
+    for lv in LEVELS:
+        st = {}
+        for name, _ in ARMS:
+            for s in SEEDS:
+                if (name, s) in runs:
+                    r = runs[name, s][0]
+                    i = np.nonzero(r.err_last <= lv)[0]
+                    st[name, s] = int(r.steps[i[0]]) if len(i) else None
+        rat = [st["AdamW", s] / st["Muon", s] for s in SEEDS if st.get(("AdamW", s)) and st.get(("Muon", s))]
+        print(f"  error {lv}: " + "  ".join(f"{name} " + ",".join(str(st.get((name, s))) for s in SEEDS) for name, _ in ARMS)
+              + (f"  | AdamW/Muon {min(rat):.1f}-{max(rat):.1f}" if rat else ""))
+        cnt = {}
+        for name, _ in ARMS:
+            c = []
+            for s in SEEDS:
+                if (name, s) in runs:
+                    r = runs[name, s][0]
+                    i = np.nonzero(r.err_last <= lv)[0]
+                    if len(i):
+                        c.append(int((1 - r.probe_err()[int(i[0])] > 0.5).sum()))
+            cnt[name] = c
+        print("    directions with fraction learned > 0.5: " + "  ".join(f"{k} {v}" for k, v in cnt.items()))
+    rs = []
+    for s in SEEDS:
+        if ("Muon", s) in runs and ("AdamW", s) in runs:
+            em = {e["step"]: e for e in runs["Muon", s][1]["evals"] if "qshift_err" in e}
+            ea = {e["step"]: e for e in runs["AdamW", s][1]["evals"] if "qshift_err" in e}
+            ts = [float(t) for t in runs["Muon", s][1]["config"]["qshift_ts"].split(",")]
+            if 2000 in em and 2000 in ea:
+                rs += [m / a for t, m, a in zip(ts, em[2000]["qshift_err"], ea[2000]["qshift_err"]) if t != 0]
+    if rs:
+        print(f"  step 2,000: Muon / AdamW shifted-query error over every shift and seed: {min(rs):.2f}-{max(rs):.2f}")
+    print("  sign test, one-sided, 5/5 seeds agreeing: p = 1/32 = 0.031")
+
     print("\nfirst step at error 0.05, per seed")
     for name, _ in ARMS:
         st = []
