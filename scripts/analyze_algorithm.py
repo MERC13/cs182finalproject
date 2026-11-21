@@ -78,6 +78,20 @@ def main():
                 summ = "-"
             print(f"  {arm:15s} " + " ".join(f"{c:>24s}" for c in cells) + f"   {summ}")
         print()
+    # Table 2, last column: Garg scale at the report's matched errors 0.05-0.03
+    name = "Garg-scale GPT-2 (d = 20)"
+    S = SETTINGS[name]
+    lv3 = (0.05, 0.04, 0.03)
+    R = out[name]
+    print(f"== {name}, errors 0.05-0.03 (Table 2): ratio range and count above 1; Muon vs each arm, same seed and error")
+    for arm, _ in S["arms"]:
+        v = [R[k]["ratio"] for k in R if k.split("|")[0] == arm and float(k.split("|")[2]) in lv3]
+        if v:
+            print(f"  {arm:15s} {min(v):.2f}-{max(v):.2f}, above 1 in {sum(x > 1 for x in v)}/{len(v)}")
+    for other in ("AdamW", "SGD", "Muon, p = 1"):
+        pairs = [(R[f"Muon|{s}|{lv}"]["ratio"], R[f"{other}|{s}|{lv}"]["ratio"]) for s in S["seeds"] for lv in lv3
+                 if f"Muon|{s}|{lv}" in R and f"{other}|{s}|{lv}" in R]
+        print(f"  Muon higher than {other} in {sum(a > b for a, b in pairs)}/{len(pairs)}")
     os.makedirs(os.path.join(ROOT, "figures/report"), exist_ok=True)
     json.dump(out, open(os.path.join(ROOT, "figures/report/algorithm.json"), "w"), indent=1)
 

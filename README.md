@@ -17,7 +17,7 @@ python3 scripts/analyze_algorithm.py    # H1 algorithm: distance to nearest PCR 
 ```
 
 **Checkpoints.** `checkpoints/<dir>/<run>.pt` holds the final float32 weights of every GPT-2 run the report uses
-(`garg_scale/`: 12 layers, width 256, seeds 10-12, plus exact Muon; `init/`, `knob/`, `ood/`: the smaller GPT-2),
+(`garg_scale/`: 12 layers, width 256, seeds 10-14, plus exact Muon; `init/`, `knob/`, `ood/`: the smaller GPT-2),
 with the run's training flags. Load one and check it against its log:
 
 ```bash

@@ -147,8 +147,49 @@ def main():
                          rare={f"{k[0]}|{k[1]}": v for k, v in rare.items()},
                          common={f"{k[0]}|{k[1]}": v for k, v in common.items()})
     table3(runs)
+    interp_and_profile(runs)
     os.makedirs(os.path.join(ROOT, "figures/garg_scale"), exist_ok=True)
     json.dump(tally, open(os.path.join(ROOT, "figures/garg_scale/seeds_summary.json"), "w"), indent=1)
+
+
+def interp_and_profile(runs, levels=(0.05, 0.04, 0.03)):
+    """Robustness of H1 to reading each run at exactly the level (linear interpolation in error between the two
+    evaluations that bracket the first crossing), and the per-direction Muon - AdamW profile at the first evaluation."""
+    def weak_interp(r, lv):
+        i = np.nonzero(r.err_last <= lv)[0]
+        if not len(i):
+            return None
+        i = int(i[0])
+        w = np.mean(1 - r.probe_err()[:, 2:], axis=1)
+        if i == 0:
+            return float(w[0])
+        a = (r.err_last[i - 1] - lv) / (r.err_last[i - 1] - r.err_last[i])
+        return float(w[i - 1] + a * (w[i] - w[i - 1]))
+    print("\n== H1 read at exactly each level (linear interpolation between the bracketing evaluations)")
+    for lv in levels:
+        wi = {(n, s): weak_interp(r, lv) for (n, s), (r, _) in runs.items()}
+        for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1")):
+            ss = [s for s in SEEDS if wi.get((a, s)) is not None and wi.get((b, s)) is not None]
+            if len(ss) >= 2:
+                dd = [wi[a, s] - wi[b, s] for s in ss]
+                print(f"  error {lv} {a} - {b}: " + " ".join(f"s{s} {x:+.3f}" for s, x in zip(ss, dd))
+                      + f"  mean {np.mean(dd):+.3f}  one-sided p = {p_one_sided(dd):.3f}")
+    print("\n== Per-direction fraction learned, Muon - AdamW (mean over seeds), at the first evaluation at or below each level")
+    for lv in levels:
+        diffs = []
+        for s in SEEDS:
+            if ("Muon", s) not in runs or ("AdamW", s) not in runs:
+                continue
+            pr = []
+            for name in ("Muon", "AdamW"):
+                r = runs[name, s][0]
+                i = np.nonzero(r.err_last <= lv)[0]
+                pr.append(1 - r.probe_err()[int(i[0])] if len(i) else None)
+            if pr[0] is not None and pr[1] is not None:
+                diffs.append(pr[0] - pr[1])
+        if diffs:
+            m = np.mean(diffs, axis=0)
+            print(f"  error {lv} ({len(diffs)} seeds): " + " ".join(f"{j + 1}:{v:+.2f}" for j, v in enumerate(m)))
 
 
 def table3(runs, levels=(0.05, 0.04)):

@@ -15,6 +15,16 @@
 "step": 2200
 },
 {
+"arm": "SGD",
+"seed": 13,
+"step": 2900
+},
+{
+"arm": "SGD",
+"seed": 14,
+"step": 3000
+},
+{
 "arm": "AdamW",
 "seed": 10,
 "step": 1400
@@ -28,6 +38,16 @@
 "arm": "AdamW",
 "seed": 12,
 "step": 1400
+},
+{
+"arm": "AdamW",
+"seed": 13,
+"step": 1450
+},
+{
+"arm": "AdamW",
+"seed": 14,
+"step": 1550
 },
 {
 "arm": "Muon",
@@ -45,6 +65,16 @@
 "step": 450
 },
 {
+"arm": "Muon",
+"seed": 13,
+"step": 500
+},
+{
+"arm": "Muon",
+"seed": 14,
+"step": 550
+},
+{
 "arm": "Muon, p = 1",
 "seed": 10,
 "step": 1250
@@ -58,5 +88,15 @@
 "arm": "Muon, p = 1",
 "seed": 12,
 "step": 1100
+},
+{
+"arm": "Muon, p = 1",
+"seed": 13,
+"step": 1250
+},
+{
+"arm": "Muon, p = 1",
+"seed": 14,
+"step": 1250
 }
 ]
