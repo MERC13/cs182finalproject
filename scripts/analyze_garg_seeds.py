@@ -181,7 +181,7 @@ def main():
                          H3=(len(h3_ok), len(h3)), weak={f"{k[0]}|{k[1]}": v for k, v in weak.items()},
                          rare={f"{k[0]}|{k[1]}": v for k, v in rare.items()},
                          common={f"{k[0]}|{k[1]}": v for k, v in common.items()})
-    table3(runs)
+    table3(runs, levels=(0.05, 0.04, 0.03))
     interp_and_profile(runs)
     os.makedirs(os.path.join(ROOT, "figures/garg_scale"), exist_ok=True)
     json.dump(tally, open(os.path.join(ROOT, "figures/garg_scale/seeds_summary.json"), "w"), indent=1)

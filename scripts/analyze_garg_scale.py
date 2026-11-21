@@ -27,9 +27,33 @@ ARMS = [("SGD", "sgd_s10.json"), ("AdamW", "adamw_s10.json"), ("Muon", "muon_s10
 LEVELS = (0.3, 0.2, 0.1, 0.05, 0.04, 0.03)
 
 
-def q_matched(d, lv):
+_QSCALE = {}
+
+
+def qshift_scale(d):
+    """Per shift t, sum_p y_q^2 / (P d) on the run's query-shift prompts (rebuilt from the eval seed). The logged
+    qshift_err is the relative error sum_p (yhat - y)^2 / sum_p y^2; multiplying by this factor gives Eq. 2's error
+    (1/d) mean_p (yhat - y)^2 on the same prompts. About 0.86 at t = 0."""
+    c = d["config"]
+    key = (c["cond"], c["d"], c["n_points"], c["eval_seed"], c.get("n_test", 1000), c["qshift_ts"])
+    if key not in _QSCALE:
+        from icl.data import make_condition, make_eval_sets
+        ts = tuple(float(t) for t in c["qshift_ts"].split(","))
+        ev = make_eval_sets(make_condition(c["cond"], c["d"]), c["n_points"], c["eval_seed"],
+                            n_test=c.get("n_test", 1000), qts=ts)
+        qy = ev.qy[..., -1].double()
+        _QSCALE[key] = ((qy ** 2).sum(1) / (qy.shape[1] * c["d"])).numpy()
+    return _QSCALE[key]
+
+
+def q_matched(d, lv, eq2=True):
+    """Shifted-query errors where the run's own unshifted (t = 0) error on the query-shift prompts first crosses lv,
+    interpolating log error linearly between the bracketing evaluations. eq2=True: errors in Eq. 2's units (the
+    paper); eq2=False: the logged relative errors (earlier versions of the report)."""
     ts = [float(t) for t in d["config"]["qshift_ts"].split(",")]
     Q = [np.array(e["qshift_err"]) for e in d["evals"] if "qshift_err" in e]
+    if eq2:
+        Q = [q * qshift_scale(d) for q in Q]
     i0 = ts.index(0.0)
     for a, b in zip(Q[:-1], Q[1:]):
         if a[i0] > lv >= b[i0] and a[i0] > 0 and b[i0] > 0:

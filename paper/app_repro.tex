@@ -1,11 +1,15 @@
-Code, job files, training logs and checkpoints are at \url{https://github.com/MERC13/cs182finalproject}. Every number and figure in this paper is computed from the committed logs, without retraining:
+{\sloppy Code, job files, training logs and checkpoints are at \url{https://github.com/MERC13/cs182finalproject}. Every number and figure in this paper is computed from the committed logs, without retraining:
 \begin{itemize}
-\item \texttt{python3 scripts/report\_data.py} and \texttt{python3 scripts/make\_paper\_figures.py}: Figures~\ref{fig:loss}--\ref{fig:linattn};
-\item \texttt{python3 scripts/analyze\_garg\_seeds.py}: Tables~\ref{tab:h1}, \ref{tab:h2} and \ref{tab:seeds} (statistics, paired $t$-tests, interpolation checks, per-direction profile);
-\item \texttt{python3 scripts/analyze\_algorithm.py}: the PCR/ridge column of Table~\ref{tab:h1};
-\item \texttt{python3 scripts/analyze\_schatten\_pilot.py} and \texttt{scripts/ood\_map\_linattn.py}: the linear-attention results;
-\item \texttt{python3 scripts/analyze\_garg\_lr.py}: Table~\ref{tab:lr}.
-\end{itemize}
+\item \texttt{python3 scripts/report\_data.py}, \texttt{scripts/analyze\_probe\_refs.py}, \texttt{scripts/analyze\_linattn\_matched.py}, then \texttt{scripts/make\_paper\_figures.py}: Figures~\ref{fig:loss}--\ref{fig:linattn};
+\item \texttt{python3 scripts/analyze\_probe\_refs.py}: the probe and bounded scores, direction counts and reference profiles (Tables~\ref{tab:h1} and \ref{tab:seeds});
+\item \texttt{python3 scripts/analyze\_garg\_seeds.py}: speed, query-shift results (Table~\ref{tab:h2}), interpolated reads and the step-2,000 comparison;
+\item \texttt{python3 scripts/analyze\_algorithm.py}: distances to the reference estimators and their ratio (Table~\ref{tab:h1}); its second block covers the small GPT-2;
+\item \texttt{python3 scripts/analyze\_linattn\_matched.py}, \texttt{analyze\_schatten\_pilot.py} and \texttt{ood\_map\_linattn.py} (all in \texttt{scripts/}): the linear-attention results;
+\item \texttt{python3 scripts/analyze\_init.py}, \texttt{scripts/analyze\_knob\_gpt2.py} and \texttt{scripts/analyze\_ood\_gpt2.py}: the small-GPT-2 column of Table~\ref{tab:summary};
+\item \texttt{python3 scripts/analyze\_garg\_scale.py}: exact orthogonalization (Appendix~\ref{app:seeds});
+\item \texttt{python3 scripts/analyze\_garg\_lr.py}: Table~\ref{tab:lr};
+\item \texttt{cd paper \&\& latexmk -pdf main.tex}: this PDF.
+\end{itemize}}
 \texttt{checkpoints/} holds the final weights of the 34 GPT-2 runs in Section~\ref{sec:results} and Table~\ref{tab:summary} (the learning-rate checks have logs only); \texttt{python3 scripts/eval\_checkpoint.py --all} reproduces each run's logged final evaluation exactly. Any run can be retrained with \texttt{python3 scripts/run\_queue.py jobs/<file>.txt}; each job file lists the exact flags.
 
 \textbf{Compute.} All runs used CPUs. The Garg-scale runs took about 70 hours of run time (most on one thread, three on two to four threads) and the learning-rate check 13 hours on one thread each; a linear-attention run takes about 15 CPU-seconds. Linear layers use bfloat16 autocast during training; evaluation is in float32.

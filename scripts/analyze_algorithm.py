@@ -99,11 +99,20 @@ def main():
             if v:
                 print(f"    error {lv} {arm:15s} d_pcr {np.mean([x['d_pcr'] for x in v]):.4f}  d_ridge "
                       f"{np.mean([x['d_ridge'] for x in v]):.4f}  d_ols {np.mean([x['d_ols'] for x in v]):.4f}  (n={len(v)})")
-    for other in ("AdamW",):
+    for other in ("AdamW", "SGD", "Muon, p = 1"):
         for key in ("d_pcr", "d_ridge"):
             pairs = [(R[f"Muon|{s}|{lv}"][key], R[f"{other}|{s}|{lv}"][key]) for s in S["seeds"] for lv in lv3
                      if f"Muon|{s}|{lv}" in R and f"{other}|{s}|{lv}" in R]
-            print(f"  Muon farther than {other} from the nearest {key[2:]} reference in {sum(a > b for a, b in pairs)}/{len(pairs)}")
+            p4 = [(R[f"Muon|{s}|0.04"][key], R[f"{other}|{s}|0.04"][key]) for s in S["seeds"]
+                  if f"Muon|{s}|0.04" in R and f"{other}|{s}|0.04" in R]
+            print(f"  Muon farther than {other} from the nearest {key[2:]} reference in {sum(a > b for a, b in pairs)}/{len(pairs)}"
+                  f" (errors 0.05-0.03); at 0.04 in {sum(a > b for a, b in p4)}/{len(p4)}, mean difference "
+                  f"{np.mean([a - b for a, b in p4]):+.4f}")
+    for lv in (0.1, 0.04):
+        for arm, _ in S["arms"]:
+            v = [R[k]["ratio"] for k in R if k.split("|")[0] == arm and float(k.split("|")[2]) == lv]
+            if v:
+                print(f"  error {lv} {arm:15s} ratio {min(v):.2f}-{max(v):.2f}, above 1 in {sum(x > 1 for x in v)}/{len(v)}")
     os.makedirs(os.path.join(ROOT, "figures/report"), exist_ok=True)
     json.dump(out, open(os.path.join(ROOT, "figures/report/algorithm.json"), "w"), indent=1)
 

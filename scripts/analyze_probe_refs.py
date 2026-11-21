@@ -88,6 +88,22 @@ def main():
                       for s in ss]
                 print(f"    clipped {a} - {b}: " + " ".join(f"{x:+.3f}" for x in dd)
                       + f"  mean {np.mean(dd):+.3f}  one-sided p = {p_one_sided(dd):.3f}")
+    print("\n== paired differences per seed, raw and bounded score (Tables 3 and 5); counts > 0; sign and t tests")
+    for lv in (0.05, 0.04, 0.03):
+        for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1")):
+            ss = [s for s in SEEDS if (a, s, lv) in prof and (b, s, lv) in prof]
+            if len(ss) < 2:
+                continue
+            for lab, f in (("raw", lambda x: np.mean(x[2:])), ("bounded", lambda x: np.mean(np.clip(x[2:], 0, None)))):
+                dd = [f(np.array(prof[a, s, lv])) - f(np.array(prof[b, s, lv])) for s in ss]
+                k = sum(x > 0 for x in dd)
+                sign_p = sum(__import__("math").comb(len(dd), i) for i in range(k, len(dd) + 1)) / 2 ** len(dd)
+                print(f"  error {lv} {a} - {b:12s} {lab:8s} " + " ".join(f"{x:+.4f}" for x in dd)
+                      + f"  mean {np.mean(dd):+.3f}  > 0 in {k}/{len(dd)}  sign p = {sign_p:.3f}  t p = {p_one_sided(dd):.3f}")
+    print("\n== directions with f_j > 0.5, per seed")
+    for lv in LEVELS:
+        print(f"  error {lv}: " + "  ".join(f"{name} " + ",".join(str(int((np.array(prof[name, s, lv]) > 0.5).sum()))
+                                                 for s in SEEDS if (name, s, lv) in prof) for name, _ in ARMS))
     print("\n== mean profiles at error 0.04 (directions 1-20)")
     for name, _ in ARMS:
         v = np.array([prof[name, s, 0.04] for s in SEEDS if (name, s, 0.04) in prof])

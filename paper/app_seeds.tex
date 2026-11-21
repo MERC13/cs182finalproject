@@ -1,42 +1,58 @@
-Table~\ref{tab:seeds} gives the per-seed paired differences behind Table~\ref{tab:h1}: the weak-direction fraction (directions 3--20) of Muon minus that of the other optimizer in the same seed, with one-sided paired $t$-tests (4 degrees of freedom).
+Table~\ref{tab:seeds} gives the per-seed paired differences behind Table~\ref{tab:h1}, in the raw probe score $\bar f$ and the bounded score $\bar f_+$ (directions 3--20), at all three matched errors. The last columns give the number of seeds with a positive difference, the exact one-sided sign test and the one-sided paired $t$-test (4 d.f.). SGD never reaches error 0.03.
 
 \begin{table}[h]
-\caption{\textbf{Per-seed paired differences} in the weak-direction fraction at Garg scale.}
+\caption{\textbf{Per-seed paired differences} at Garg scale (Muon minus the other arm, same seed).}
 \label{tab:seeds}
+\vspace{2pt}
 \centering\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llrrrrrrr@{}}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lllrrrrrrccc@{}}
 \toprule
-Error & Comparison & Seed 10 & Seed 11 & Seed 12 & Seed 13 & Seed 14 & Mean & $p$ \\
+Error & Comparison & Score & Seed 10 & 11 & 12 & 13 & 14 & Mean & $>0$ & sign $p$ & $p_t$ \\
 \midrule
-0.05 & Muon $-$ AdamW & $+0.101$ & $+0.048$ & $+0.089$ & $+0.081$ & $+0.050$ & $+0.074$ & 0.001 \\
-0.05 & Muon $-$ SGD & $+0.112$ & $+0.038$ & $+0.001$ & $+0.096$ & $-0.005$ & $+0.048$ & 0.057 \\
-0.05 & Muon $-$ Muon ($p=1$) & $+0.098$ & $+0.042$ & $+0.046$ & $+0.107$ & $+0.041$ & $+0.067$ & 0.005 \\
-0.04 & Muon $-$ AdamW & $+0.063$ & $+0.040$ & $+0.081$ & $+0.114$ & $+0.081$ & $+0.076$ & 0.002 \\
-0.04 & Muon $-$ SGD & $+0.079$ & $+0.001$ & $+0.039$ & $+0.065$ & $+0.006$ & $+0.038$ & 0.034 \\
-0.04 & Muon $-$ Muon ($p=1$) & $+0.082$ & $+0.021$ & $+0.069$ & $+0.069$ & $+0.083$ & $+0.065$ & 0.002 \\
-0.03 & Muon $-$ AdamW & $+0.088$ & $+0.066$ & $+0.069$ & $+0.098$ & $+0.060$ & $+0.076$ & $<0.001$ \\
-0.03 & Muon $-$ Muon ($p=1$) & $+0.065$ & $+0.046$ & $+0.114$ & $+0.077$ & $+0.072$ & $+0.075$ & 0.001 \\
+0.05 & $-$ AdamW & $\bar f$ & $+0.101$ & $+0.048$ & $+0.089$ & $+0.081$ & $+0.050$ & $+0.074$ & 5/5 & 0.031 & 0.001 \\
+ & & $\bar f_+$ & $+0.032$ & $+0.047$ & $+0.001$ & $+0.032$ & $+0.034$ & $+0.029$ & 5/5 & 0.031 & 0.009 \\
+0.05 & $-$ SGD & $\bar f$ & $+0.112$ & $+0.038$ & $+0.001$ & $+0.096$ & $-0.005$ & $+0.048$ & 4/5 & 0.19 & 0.057 \\
+ & & $\bar f_+$ & $+0.019$ & $+0.011$ & $-0.038$ & $+0.004$ & $-0.004$ & $-0.002$ & 3/5 & 0.50 & 0.56 \\
+0.05 & $-$ ($p{=}1$) & $\bar f$ & $+0.098$ & $+0.042$ & $+0.046$ & $+0.107$ & $+0.041$ & $+0.067$ & 5/5 & 0.031 & 0.005 \\
+ & & $\bar f_+$ & $+0.040$ & $+0.037$ & $+0.015$ & $+0.029$ & $+0.050$ & $+0.034$ & 5/5 & 0.031 & 0.002 \\
+\midrule
+0.04 & $-$ AdamW & $\bar f$ & $+0.063$ & $+0.040$ & $+0.081$ & $+0.114$ & $+0.081$ & $+0.076$ & 5/5 & 0.031 & 0.002 \\
+ & & $\bar f_+$ & $+0.021$ & $-0.009$ & $+0.024$ & $+0.029$ & $+0.033$ & $+0.020$ & 4/5 & 0.19 & 0.028 \\
+0.04 & $-$ SGD & $\bar f$ & $+0.079$ & $+0.001$ & $+0.039$ & $+0.065$ & $+0.006$ & $+0.038$ & 5/5 & 0.031 & 0.034 \\
+ & & $\bar f_+$ & $+0.002$ & $-0.014$ & $-0.014$ & $+0.030$ & $+0.017$ & $+0.004$ & 3/5 & 0.50 & 0.33 \\
+0.04 & $-$ ($p{=}1$) & $\bar f$ & $+0.082$ & $+0.021$ & $+0.069$ & $+0.069$ & $+0.083$ & $+0.065$ & 5/5 & 0.031 & 0.002 \\
+ & & $\bar f_+$ & $+0.036$ & $+0.000$ & $+0.030$ & $+0.011$ & $+0.054$ & $+0.026$ & 5/5 & 0.031 & 0.025 \\
+\midrule
+0.03 & $-$ AdamW & $\bar f$ & $+0.088$ & $+0.066$ & $+0.069$ & $+0.098$ & $+0.060$ & $+0.076$ & 5/5 & 0.031 & $<0.001$ \\
+ & & $\bar f_+$ & $+0.013$ & $+0.014$ & $-0.003$ & $-0.005$ & $+0.026$ & $+0.009$ & 3/5 & 0.50 & 0.094 \\
+0.03 & $-$ ($p{=}1$) & $\bar f$ & $+0.065$ & $+0.046$ & $+0.114$ & $+0.077$ & $+0.072$ & $+0.075$ & 5/5 & 0.031 & 0.001 \\
+ & & $\bar f_+$ & $+0.021$ & $+0.006$ & $+0.013$ & $-0.007$ & $+0.036$ & $+0.014$ & 4/5 & 0.19 & 0.066 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Read at exactly each error level (linear interpolation between the two evaluations that bracket the first crossing), the mean differences are: Muon $-$ AdamW $+0.069$, $+0.063$, $+0.086$ at errors 0.05, 0.04, 0.03 (all $p<0.001$); Muon $-$ SGD $+0.058$ ($p=0.024$) and $+0.036$ ($p=0.037$); Muon $-$ ($p=1$) $+0.063$, $+0.048$, $+0.083$ ($p \le 0.006$).
+\textbf{Interpolated reads.} Reading each run at exactly the error level (linear interpolation between the two evaluations that bracket the first crossing) changes the mean raw differences by at most 0.02. Muon minus AdamW becomes $+0.069$, $+0.063$ and $+0.086$ at errors 0.05, 0.04 and 0.03 (5/5 seeds each). Muon minus SGD becomes $+0.058$ and $+0.036$ (4/5 each), and Muon minus ($p=1$) $+0.063$, $+0.048$ and $+0.083$ (5/5 each).
 
-\textbf{Exact orthogonalization.} The run with $p=0$ computed by SVD (seed 10 only) behaves like standard Muon in the same seed: 450 against 500 steps to error 0.05; weak-direction fraction 0.12, 0.21 and 0.35 against 0.16, 0.21 and 0.32 at errors 0.05, 0.04 and 0.03; and query-shift ratios to AdamW within 10\% of standard Muon's at every shift at errors 0.05 and 0.04.
+\textbf{Exact orthogonalization.} The run with $p=0$ computed by SVD (seed 10 only) behaves like standard Muon in the same seed. It reaches error 0.05 in 450 steps against 500. Its probe score is 0.12, 0.21 and 0.35 at errors 0.05, 0.04 and 0.03, against 0.16, 0.21 and 0.32 for Muon and 0.06, 0.14 and 0.23 for AdamW. Its bounded score is 0.38, 0.48 and 0.55, against 0.41, 0.45 and 0.53 (AdamW: 0.38, 0.43, 0.51). Its query-shift ratios to AdamW are within 10\% of standard Muon's at every shift at errors 0.05 and 0.04.
+
+\textbf{Query shift at every level.} Table~\ref{tab:h2} gives the most extreme shifts at all three matched errors. Errors are in the units of Eq.~\eqref{eq:err} on the 256 query-shift prompts; predicting zero gives 0.85 at $t=-1$ and 0.96 at $t=+1$ on these prompts.
 
 \begin{table}[h]
-\caption{\textbf{H2 at the largest shifts.} Error relative to AdamW in the same seed, range over seeds 10--14 (SGD at error 0.04: two seeds). First row: AdamW's absolute error, mean over seeds.}
+\caption{\textbf{H2 at the largest shifts.} Error relative to AdamW in the same seed, range over seeds 10--14. First row: AdamW's error, mean over seeds. SGD never reaches error 0.03.}
 \label{tab:h2}
-\centering\small
-\begin{tabular}{@{}lcccc@{}}
+\vspace{2pt}
+\centering\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
 \toprule
- & Error 0.05, $t=-1$ & Error 0.05, $t=+1$ & Error 0.04, $t=-1$ & Error 0.04, $t=+1$ \\
+ & \multicolumn{2}{c}{Error 0.05} & \multicolumn{2}{c}{Error 0.04} & \multicolumn{2}{c}{Error 0.03} \\
+ & $t=-1$ & $t=+1$ & $t=-1$ & $t=+1$ & $t=-1$ & $t=+1$ \\
 \midrule
-AdamW (absolute) & 0.009 & 0.89 & 0.007 & 0.83 \\
-Muon & 1.27--2.34$\times$ & 0.91--1.00$\times$ & 1.16--1.78$\times$ & 0.93--1.00$\times$ \\
-SGD & 0.81--2.32$\times$ & 0.97--0.99$\times$ & 0.88--0.92$\times$ & 0.97--1.01$\times$ \\
-Muon, $p=1$ & 0.57--1.28$\times$ & 0.97--1.02$\times$ & 0.79--1.07$\times$ & 0.99--1.02$\times$ \\
+AdamW (error) & 0.0080 & 0.878 & 0.0067 & 0.828 & 0.0052 & 0.762 \\
+Muon & 1.31--2.04$\times$ & 0.96--1.00$\times$ & 1.35--1.89$\times$ & 0.94--1.00$\times$ & 1.18--2.05$\times$ & 0.89--1.02$\times$ \\
+SGD & 1.25--1.67$\times$ & 0.95--0.99$\times$ & 0.92--1.70$\times$ & 0.97--1.01$\times$ & -- & -- \\
+Muon, $p=1$ & 0.79--1.12$\times$ & 0.99--1.01$\times$ & 0.77--1.40$\times$ & 0.97--1.02$\times$ & 0.84--1.65$\times$ & 0.98--1.03$\times$ \\
 \bottomrule
 \end{tabular}
 \end{table}
