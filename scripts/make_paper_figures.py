@@ -85,7 +85,7 @@ def fig_loss():
         ax.fill_between(st, np.maximum(m - sd, 1e-3), m + sd, color=COL[arm], alpha=0.2, lw=0)
     for lv in (0.05, 0.04, 0.03):
         ax.axhline(lv, color="k", lw=0.6, ls="--")
-    ax.text(3950, 0.0165, "dashed: matched levels 0.05, 0.04, 0.03", fontsize=6, ha="right", va="bottom", color="#333")
+    ax.text(3950, 0.55, "dashed: matched\nlevels 0.05, 0.04, 0.03", fontsize=6, ha="right", va="center", color="#333")
     ax.set_yscale("log")
     ax.set_ylim(0.015, 1.1)
     ax.set_yticks([0.03, 0.05, 0.1, 0.2, 0.5, 1.0])

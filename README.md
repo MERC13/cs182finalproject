@@ -2,18 +2,26 @@
 
 Initial tests of the CS 182 proposal (Chu, Dao, Hu, Cha). **Results: [`REPORT.md`](REPORT.md).**
 
-## Final report: figures, statistics and checkpoints
+## Paper: figures, statistics and checkpoints
 
-Everything in the final report's results comes from the committed JSON logs; no retraining is needed.
+The paper is `paper/main.pdf` (source `paper/main.tex`). Every number and figure in it comes from the committed
+JSON logs; no retraining is needed. Numbering below follows the paper.
 
 ```bash
-python3 scripts/report_data.py          # Figures 1-3 data -> figures/report/*.json
-python3 scripts/analyze_garg_seeds.py   # Section 4 statistics (five seeds, matched errors)
-python3 scripts/analyze_garg_scale.py   # seed-10 detail, including exact Muon
-python3 scripts/ood_map_linattn.py      # linear attention: query shifts at matched error
+python3 scripts/report_data.py             # Figure 2 data -> figures/report/*.json
+python3 scripts/analyze_probe_refs.py      # H1: probe and bounded scores, reference profiles (Tables 2 and 5, Figure 3)
+python3 scripts/analyze_linattn_matched.py # linear attention: PCR/ridge ratio at matched excess loss (Figure 5)
+python3 scripts/make_paper_figures.py      # Figures 2-5 -> paper/figures/*.pdf
+python3 scripts/analyze_garg_seeds.py      # speed, H2 in Eq. 2 units (Table 6), interpolated reads, step 2,000
+python3 scripts/analyze_algorithm.py       # H1: distances to the nearest PCR and ridge references (Table 2)
+python3 scripts/analyze_garg_scale.py      # seed-10 detail, including exact Muon (Appendix C)
 python3 scripts/analyze_schatten_pilot.py  # linear attention: the spectral knob
-python3 scripts/analyze_garg_lr.py      # learning-rate check at Garg scale (Appendix B)
-python3 scripts/analyze_algorithm.py    # H1 algorithm: distance to nearest PCR vs nearest ridge (Table 2)
+python3 scripts/ood_map_linattn.py         # linear attention: query shifts at matched excess loss
+python3 scripts/analyze_init.py            # small GPT-2: H1 (Table 1)
+python3 scripts/analyze_knob_gpt2.py       # small GPT-2: knob (Table 1)
+python3 scripts/analyze_ood_gpt2.py        # small GPT-2: query shifts (Table 1)
+python3 scripts/analyze_garg_lr.py         # learning-rate check at Garg scale (Appendix B, Table 4)
+cd paper && latexmk -pdf main.tex          # the PDF
 ```
 
 **Checkpoints.** `checkpoints/<dir>/<run>.pt` holds the final float32 weights of every GPT-2 run the report uses
