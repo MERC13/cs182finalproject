@@ -12,11 +12,11 @@ Error & Comparison & & Seed 10 & 11 & 12 & 13 & 14 & Mean & $>0$ & sign $p$ & $p
 \midrule
 0.05 & Muon $-$ AdamW & $\bar f$ & $+0.077$ & $+0.071$ & $+0.068$ & $+0.074$ & $+0.055$ & $+0.069$ & 5/5 & 0.031 & $<0.001$ \\
  &  & $\bar f_+$ & $+0.011$ & $+0.029$ & $-0.004$ & $+0.023$ & $+0.027$ & $+0.017$ & 4/5 & 0.19 & 0.025 \\
-0.05 & Muon $-$ SGD & $\bar f$ & $+0.102$ & $+0.054$ & $-0.015$ & $+0.094$ & $+0.057$ & $+0.058$ & 4/5 & 0.19 & 0.024 \\
+0.05 & Muon $-$ SGD & $\bar f$ & $+0.101$ & $+0.054$ & $-0.015$ & $+0.094$ & $+0.057$ & $+0.058$ & 4/5 & 0.19 & 0.024 \\
  &  & $\bar f_+$ & $+0.004$ & $-0.005$ & $-0.044$ & $-0.003$ & $+0.004$ & $-0.009$ & 2/5 & 0.81 & 0.81 \\
-0.05 & Muon $-$ ($p{=}1$) & $\bar f$ & $+0.061$ & $+0.069$ & $+0.030$ & $+0.098$ & $+0.056$ & $+0.063$ & 5/5 & 0.031 & 0.002 \\
+0.05 & Muon $-$ ($p{=}1$) & $\bar f$ & $+0.062$ & $+0.069$ & $+0.030$ & $+0.098$ & $+0.056$ & $+0.063$ & 5/5 & 0.031 & 0.002 \\
  &  & $\bar f_+$ & $+0.017$ & $+0.020$ & $+0.011$ & $+0.023$ & $+0.042$ & $+0.023$ & 5/5 & 0.031 & 0.006 \\
-0.05 & SGD $-$ AdamW & $\bar f$ & $-0.024$ & $+0.016$ & $+0.083$ & $-0.019$ & $-0.002$ & $+0.011$ & 2/5 & 0.81 & 0.31 \\
+0.05 & SGD $-$ AdamW & $\bar f$ & $-0.024$ & $+0.016$ & $+0.083$ & $-0.020$ & $-0.002$ & $+0.011$ & 2/5 & 0.81 & 0.31 \\
  &  & $\bar f_+$ & $+0.007$ & $+0.034$ & $+0.040$ & $+0.026$ & $+0.023$ & $+0.026$ & 5/5 & 0.031 & 0.005 \\
 \midrule
 0.04 & Muon $-$ AdamW & $\bar f$ & $+0.068$ & $+0.042$ & $+0.062$ & $+0.083$ & $+0.056$ & $+0.062$ & 5/5 & 0.031 & $<0.001$ \\
@@ -29,14 +29,14 @@ Error & Comparison & & Seed 10 & 11 & 12 & 13 & 14 & Mean & $>0$ & sign $p$ & $p
  &  & $\bar f_+$ & $+0.015$ & $+0.012$ & $+0.025$ & $+0.008$ & $+0.016$ & $+0.015$ & 5/5 & 0.031 & 0.003 \\
 \midrule
 0.03 & Muon $-$ AdamW & $\bar f$ & $+0.091$ & $+0.096$ & $+0.072$ & $+0.098$ & $+0.075$ & $+0.086$ & 5/5 & 0.031 & $<0.001$ \\
- &  & $\bar f_+$ & $+0.013$ & $+0.009$ & $+0.002$ & $-0.003$ & $+0.017$ & $+0.008$ & 4/5 & 0.19 & 0.053 \\
+ &  & $\bar f_+$ & $+0.013$ & $+0.009$ & $+0.001$ & $-0.003$ & $+0.017$ & $+0.008$ & 4/5 & 0.19 & 0.053 \\
 0.03 & Muon $-$ ($p{=}1$) & $\bar f$ & $+0.074$ & $+0.070$ & $+0.105$ & $+0.093$ & $+0.075$ & $+0.083$ & 5/5 & 0.031 & $<0.001$ \\
  &  & $\bar f_+$ & $+0.022$ & $+0.007$ & $+0.017$ & $+0.011$ & $+0.031$ & $+0.018$ & 5/5 & 0.031 & 0.007 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{First-evaluation reads.} Reading each run at the first evaluation at or below the level, instead of interpolating to it, favours Muon, whose error falls more per evaluation: it is then read at a lower error (0.046 against AdamW's 0.049 at the 0.05 level, mean over seeds). With these reads Muon minus AdamW is $+0.074$, $+0.076$ and $+0.076$ on $\bar f$ (5/5 each) and $+0.029$ (5/5), $+0.020$ (4/5) and $+0.009$ (3/5) on $\bar f_+$ at errors 0.05, 0.04 and 0.03; Muon minus SGD on $\bar f_+$ is $-0.002$ and $+0.004$ (3/5 each); Muon minus ($p=1$) on $\bar f_+$ is $+0.034$ (5/5), $+0.026$ (5/5) and $+0.014$ (4/5).
+\textbf{First-evaluation reads.} Reading each run at the first evaluation at or below the level, instead of interpolating to it, favours Muon at the 0.05 level, where its error falls more per evaluation: it is then read at 0.046 against AdamW's 0.049 (mean over seeds). At 0.04 and 0.03 the two are read at nearly the same error. With these reads Muon minus AdamW is $+0.074$, $+0.076$ and $+0.076$ on $\bar f$ (5/5 each) and $+0.029$ (5/5), $+0.020$ (4/5) and $+0.009$ (3/5) on $\bar f_+$ at errors 0.05, 0.04 and 0.03; Muon minus SGD on $\bar f_+$ is $-0.002$ and $+0.004$ (3/5 each); Muon minus ($p=1$) on $\bar f_+$ is $+0.034$ (5/5), $+0.026$ (5/5) and $+0.014$ (4/5).
 
 \textbf{Exact orthogonalization.} The run with $p=0$ computed by SVD (seed 10 only) behaves like standard Muon in the same seed. It first reaches error 0.05 at step 450 against 500. Its probe score is 0.12, 0.21 and 0.33 at errors 0.05, 0.04 and 0.03, against 0.13, 0.19 and 0.31 for Muon and 0.06, 0.12 and 0.22 for AdamW (seed 10). Its bounded score is 0.382, 0.469 and 0.539, against 0.385, 0.445 and 0.526 (AdamW: 0.374, 0.430, 0.513). Its query-shift ratios to AdamW are within 10\% of standard Muon's at every shift at errors 0.05 and 0.04.
 

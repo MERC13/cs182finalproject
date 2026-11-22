@@ -9,10 +9,11 @@ The key questions and hypotheses in Section~\ref{sec:intro} are those of our rev
 \toprule
 Proposal & This paper & Why \\
 \midrule
-Main model: 4-layer, width-128 GPT-2, $d = 8$, $N = 32$ (Garg scale as a pilot) & Garg et al.'s 12-layer, width-256 GPT-2 with $d = 20$, $n = 40$; the small model in Appendix~\ref{app:small} & The pilot effects held at the standard testbed size, which makes the results comparable with prior work \\
+Main model: 4-layer, width-128 GPT-2, $d = 8$, $N = 32$ (Garg scale as a pilot) & Garg et al.'s 12-layer, width-256 GPT-2 with $d = 20$, $n = 40$; the small model in Appendix~\ref{app:small} & Garg et al.'s model size is the standard testbed; the effects shrank there (Section~\ref{sec:results}) but the qualitative picture held \\
 5 seeds per arm & Garg scale: 5 seeds for SGD, AdamW, Muon and $p=1$; 1 for $p=0$. Linear attention: 3. Small GPT-2: 2 (knob and shift: 1) & CPU budget; the Garg-scale runs took about 70 hours of run time \\
-Knob at $p \in \{1, 0.25, 0\}$ in the GPT-2, 5 seeds & Run as planned in the small GPT-2, one seed; at Garg scale $p \in \{1, 0\}$ and standard Muon, $p = 0.25$ in progress & Each $p$ needs its own learning rate at Garg scale ($p=1$ needed one $14\times$ lower than Muon's) \\
+Knob at $p \in \{1, 0.25, 0\}$ in the GPT-2, 5 seeds & Run in the small GPT-2 with one seed (not five); at Garg scale $p \in \{1, 0\}$ and standard Muon, $p = 0.25$ planned & Each $p$ needs its own learning rate at Garg scale ($p=1$ needed one $14\times$ lower than Muon's) \\
 Knob at $p \in \{1, 0.5, 0.25, 0.1, 0\}$ in linear attention & Added $p = 0.75$ & To check the weakly flattened end \\
+SGD with momentum & Linear attention: plain gradient descent, no momentum & Matches the gradient-flow analysis of \citet{zhang2025training} \\
 Own learning-rate sweep per optimizer & Sweeps on the small GPT-2, checked at Garg scale with one seed (Appendix~\ref{app:lr}) & Compute \\
 2,000 test prompts & 1,000 held-out prompts, 64 probe prompts per direction, 256 query-shift prompts per shift & Evaluation runs every 50--100 steps \\
 ``Fraction of each direction learned'' & Probe score $\bar f$ and bounded score $\bar f_+$, read at exactly the matched error & $f_j$ has no lower bound, and its negative values mark PCR (Section~\ref{sec:measure}) \\

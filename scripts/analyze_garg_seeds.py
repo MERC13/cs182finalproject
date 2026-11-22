@@ -188,19 +188,13 @@ def main():
 
 
 def interp_and_profile(runs, levels=(0.05, 0.04, 0.03)):
-    """Robustness of H1 to reading each run at exactly the level (linear interpolation in error between the two
-    evaluations that bracket the first crossing), and the per-direction Muon - AdamW profile at the first evaluation."""
+    """Raw probe score read at exactly the level (Run.read_at: linear in log error between the two evaluations that
+    bracket the first crossing, as in the paper; analyze_probe_refs.py gives the bounded score too), and the
+    per-direction Muon - AdamW profile at the first evaluation."""
     def weak_interp(r, lv):
-        i = np.nonzero(r.err_last <= lv)[0]
-        if not len(i):
-            return None
-        i = int(i[0])
-        w = np.mean(1 - r.probe_err()[:, 2:], axis=1)
-        if i == 0:
-            return float(w[0])
-        a = (r.err_last[i - 1] - lv) / (r.err_last[i - 1] - r.err_last[i])
-        return float(w[i - 1] + a * (w[i] - w[i - 1]))
-    print("\n== H1 read at exactly each level (linear interpolation between the bracketing evaluations)")
+        v = r.read_at(np.mean(1 - r.probe_err()[:, 2:], axis=1), lv, interp=True)
+        return None if v is None else float(v)
+    print("\n== H1 raw probe score read at exactly each level (interpolated in log error, as in the paper)")
     for lv in levels:
         wi = {(n, s): weak_interp(r, lv) for (n, s), (r, _) in runs.items()}
         for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1")):

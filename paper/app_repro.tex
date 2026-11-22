@@ -4,7 +4,7 @@
 \item \texttt{python3 scripts/analyze\_probe\_refs.py}: the probe and bounded scores, direction counts and reference profiles (Tables~\ref{tab:h1} and \ref{tab:seeds});
 \item \texttt{python3 scripts/analyze\_garg\_seeds.py}: speed, query-shift results (Table~\ref{tab:h2}), interpolated reads and the step-2,000 comparison;
 \item \texttt{python3 scripts/analyze\_algorithm.py}: distances to the reference estimators and their ratio (Table~\ref{tab:h1}); its second block covers the small GPT-2;
-\item \texttt{python3 scripts/analyze\_linattn\_matched.py} and \texttt{ood\_map\_linattn.py} (in \texttt{scripts/}): the linear-attention results, from the every-step logs written by \texttt{linattn\_dense.py} and \texttt{linattn\_dense\_gamma.py} (each about 3 CPU-minutes; both check that they reproduce the original 10-step logs exactly);
+\item \texttt{python3 scripts/analyze\_linattn\_matched.py} and \texttt{ood\_map\_linattn.py} (in \texttt{scripts/}): the linear-attention results, from the every-step logs written by \texttt{linattn\_dense.py} and \texttt{linattn\_dense\_gamma.py} (each about 2--3 minutes on 3--4 processes, about 8 CPU-minutes; both check that they reproduce the original 10-step logs exactly);
 \item \texttt{python3 scripts/analyze\_init.py}, \texttt{scripts/analyze\_knob\_gpt2.py} and \texttt{scripts/analyze\_ood\_gpt2.py}: the small-GPT-2 column of Table~\ref{tab:summary};
 \item \texttt{python3 scripts/analyze\_garg\_scale.py} and \texttt{analyze\_probe\_refs.py}: exact orthogonalization (Appendix~\ref{app:seeds});
 \item \texttt{python3 scripts/analyze\_garg\_lr.py}: Table~\ref{tab:lr} and the scores at error 0.05 in Appendix~\ref{app:lr};
@@ -12,4 +12,4 @@
 \end{itemize}}
 \texttt{checkpoints/} holds the final weights of 34 GPT-2 runs: those in Section~\ref{sec:results} and Table~\ref{tab:summary}, plus the small-GPT-2 SGD and exact-Muon query-shift runs (the learning-rate checks have logs only); \texttt{python3 scripts/eval\_checkpoint.py -{}-all} reproduces each run's logged final evaluation exactly. Any run can be retrained with \texttt{python3 scripts/run\_queue.py jobs/<file>.txt}; each job file lists the exact flags, except the stopped $p=1$ pilot at learning rate 0.007, whose flags are in its log's \texttt{config}.
 
-\textbf{Compute.} All runs used CPUs. The Garg-scale runs took about 70 hours of run time (about 78 CPU-hours: most ran on one thread, a few on two to four) and the learning-rate check 13 hours on one thread; a linear-attention run takes 15--25 CPU-seconds. Linear layers use bfloat16 autocast during training; evaluation is in float32.
+\textbf{Compute.} All runs used CPUs. The Garg-scale runs took about 70 hours of run time (about 78 CPU-hours: most ran on one thread, a few on two to four) and the learning-rate check 13 hours on one thread; a linear-attention run takes about 10--20 CPU-seconds. Linear layers use bfloat16 autocast during training; evaluation is in float32.

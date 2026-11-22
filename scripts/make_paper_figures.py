@@ -88,8 +88,8 @@ def fig_loss():
     ax.text(3950, 0.55, "dashed: matched\nlevels 0.05, 0.04, 0.03", fontsize=6, ha="right", va="center", color="#333")
     ax.set_yscale("log")
     ax.set_ylim(0.005, 1.1)
-    ax.set_yticks([0.01, 0.03, 0.05, 0.1, 0.2, 0.5, 1.0])
-    ax.set_yticklabels(["0.01", "0.03", "0.05", "0.1", "0.2", "0.5", "1"])
+    ax.set_yticks([0.01, 0.05, 0.1, 0.2, 0.5, 1.0])
+    ax.set_yticklabels(["0.01", "0.05", "0.1", "0.2", "0.5", "1"])
     ax.minorticks_off()
     ax.set_ylabel("error after 40 examples")
     ax.set_title("(b) Held-out error used for matching", loc="left")
@@ -183,16 +183,16 @@ def fig_h2(level=0.04):
     ax = axs[0]
     ax.axhline(1, color="k", lw=0.7, ls="--")
     ax.set_yscale("log")
-    ax.set_ylim(0.6, 2.4)
+    ax.set_ylim(0.6, 3.0)
     ax.set_yticks([0.75, 1, 1.5, 2])
     ax.set_yticklabels(["0.75", "1", "1.5", "2"])
     ax.minorticks_off()
     ax.set_ylabel("shifted error / AdamW's")
     ax.set_title(f"(a) Ratio to AdamW at error {level}", loc="left")
-    ax.legend(frameon=False, loc="upper right")
+    ax.legend(frameon=False, loc="upper center", ncol=3, handlelength=1.2, columnspacing=0.8, fontsize=6.3)
     ax = axs[1]
     ax.axhline(0, color="k", lw=0.7, ls="--")
-    ax.set_ylabel("difference")
+    ax.set_ylabel("shifted error $-$ AdamW's")
     ax.set_title("(b) Difference from AdamW", loc="left")
     for ax in axs:
         ax.axvline(0, color="#999", lw=0.5, ls=":")
@@ -210,7 +210,7 @@ def fig_linattn():
     band = [("gd", "SGD", "#a8a8a0", "-"), ("adam", "Adam", "#404040", "-"),
             ("muon_exact", "$p=0$ (exact)", "#0b2e6e", "-"), ("muon", "Muon (Newton–Schulz)", "#1f6fd1", "--")]
     thin = [("muon_pow1", "$p=1$", "#16a37a"), ("muon_pow0.25", "$p=0.25$", "#6aa8c8"), ("muon_pow0.1", "$p=0.1$", "#3c6fb0")]
-    fig, axs = plt.subplots(1, 2, figsize=(W, 1.5), gridspec_kw=dict(width_ratios=[1.0, 0.85]))
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.44), gridspec_kw=dict(width_ratios=[1.0, 0.85]))
     ax = axs[0]
     j = np.arange(1, 9)
     for key, name, c in thin:
@@ -222,7 +222,7 @@ def fig_linattn():
     ax.set_xlabel("principal direction $j$ (variance $\\propto 1/j^2$)")
     ax.set_ylabel("fraction of optimal gain")
     ax.set_title("(a) Gain profile at excess loss 0.1", loc="left")
-    ax.set_ylim(-0.05, 1.15)
+    ax.set_ylim(-0.05, 1.25)
     ax.grid(axis="y", lw=0.4, alpha=0.5)
     ax.legend(frameon=False, fontsize=6, ncol=1, loc="upper left", bbox_to_anchor=(1.0, 1.02), handlelength=1.6)
     ax = axs[1]
@@ -238,11 +238,12 @@ def fig_linattn():
         ax.axhline(r["median"], color=c, lw=0.8, ls=ls)
         ax.axhspan(r["lo"], r["hi"], color=c, alpha=0.12, lw=0)
         below = key == "gd"
-        ax.text(-0.35, r["median"] * (0.93 if below else 1.08), name, fontsize=6, color=c if key != "gd" else "#777",
+        ax.text(-0.35, r["median"] * (0.95 if below else 1.06), name, fontsize=6, color=c if key != "gd" else "#777",
                 ha="left", va="top" if below else "bottom")
     ax.errorbar(x, med, yerr=[med - lo, hi - med], fmt="o-", color="#0b2e6e", ms=3.5, capsize=0, lw=1.1)
     ax.axhline(1, color="k", lw=0.5)
     ax.set_yscale("log")
+    ax.set_ylim(0.35, 6.5)
     ax.set_yticks([0.5, 1, 2, 5])
     ax.set_yticklabels(["0.5", "1", "2", "5"])
     ax.minorticks_off()
