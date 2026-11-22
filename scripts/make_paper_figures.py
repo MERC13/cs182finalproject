@@ -58,7 +58,7 @@ def err40_curves(arm):
 
 def fig_loss():
     rows = jl("report/curves.json")
-    fig, axs = plt.subplots(1, 2, figsize=(W, 1.65))
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.5))
     ax = axs[0]
     for arm in ORDER:
         r = [x for x in rows if x["arm"] == arm and (arm != "Muon" or x["step"] <= 2000)]
@@ -87,9 +87,9 @@ def fig_loss():
         ax.axhline(lv, color="k", lw=0.6, ls="--")
     ax.text(3950, 0.55, "dashed: matched\nlevels 0.05, 0.04, 0.03", fontsize=6, ha="right", va="center", color="#333")
     ax.set_yscale("log")
-    ax.set_ylim(0.015, 1.1)
-    ax.set_yticks([0.03, 0.05, 0.1, 0.2, 0.5, 1.0])
-    ax.set_yticklabels(["0.03", "0.05", "0.1", "0.2", "0.5", "1"])
+    ax.set_ylim(0.005, 1.1)
+    ax.set_yticks([0.01, 0.03, 0.05, 0.1, 0.2, 0.5, 1.0])
+    ax.set_yticklabels(["0.01", "0.03", "0.05", "0.1", "0.2", "0.5", "1"])
     ax.minorticks_off()
     ax.set_ylabel("error after 40 examples")
     ax.set_title("(b) Held-out error used for matching", loc="left")
@@ -106,7 +106,7 @@ def fig_h1(level=0.04):
     P = jl("report/probe_refs.json")
     runs, refs = P["runs"], P["refs"]
     j = np.arange(1, 21)
-    fig, axs = plt.subplots(1, 2, figsize=(W, 1.85), gridspec_kw=dict(width_ratios=[1.25, 1]))
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.66), gridspec_kw=dict(width_ratios=[1.25, 1]))
     ax = axs[0]
     ax.plot(j, refs["pcr_11"], "--", color="#888", lw=0.9, drawstyle="steps-mid", label="PCR$_{11}$")
     ax.plot(j, refs["ridge_1"], "-.", color="#888", lw=0.9, label="ridge, $\\alpha=1$")
@@ -169,7 +169,7 @@ def fig_h2(level=0.04):
     keep = ts != 0
     order = np.argsort(ts[keep])
     tt = ts[keep][order]
-    fig, axs = plt.subplots(1, 2, figsize=(W, 1.62))
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.44))
     off = {"SGD": -0.04, "Muon": 0.0, "Muon, p = 1": 0.04}
     for arm in ("SGD", "Muon, p = 1", "Muon"):
         ss = [s for s in SEEDS if (arm, s) in Q and ("AdamW", s) in Q]
@@ -210,7 +210,7 @@ def fig_linattn():
     band = [("gd", "SGD", "#a8a8a0", "-"), ("adam", "Adam", "#404040", "-"),
             ("muon_exact", "$p=0$ (exact)", "#0b2e6e", "-"), ("muon", "Muon (Newton–Schulz)", "#1f6fd1", "--")]
     thin = [("muon_pow1", "$p=1$", "#16a37a"), ("muon_pow0.25", "$p=0.25$", "#6aa8c8"), ("muon_pow0.1", "$p=0.1$", "#3c6fb0")]
-    fig, axs = plt.subplots(1, 2, figsize=(W, 1.68), gridspec_kw=dict(width_ratios=[1.0, 0.85]))
+    fig, axs = plt.subplots(1, 2, figsize=(W, 1.5), gridspec_kw=dict(width_ratios=[1.0, 0.85]))
     ax = axs[0]
     j = np.arange(1, 9)
     for key, name, c in thin:
@@ -237,18 +237,20 @@ def fig_linattn():
         r = d[key]
         ax.axhline(r["median"], color=c, lw=0.8, ls=ls)
         ax.axhspan(r["lo"], r["hi"], color=c, alpha=0.12, lw=0)
-        ax.text(-0.35, r["median"] * 1.08, name, fontsize=6, color=c, ha="left", va="bottom")
+        below = key == "gd"
+        ax.text(-0.35, r["median"] * (0.93 if below else 1.08), name, fontsize=6, color=c if key != "gd" else "#777",
+                ha="left", va="top" if below else "bottom")
     ax.errorbar(x, med, yerr=[med - lo, hi - med], fmt="o-", color="#0b2e6e", ms=3.5, capsize=0, lw=1.1)
     ax.axhline(1, color="k", lw=0.5)
     ax.set_yscale("log")
-    ax.set_yticks([0.2, 0.3, 0.5, 1, 2, 3])
-    ax.set_yticklabels(["0.2", "0.3", "0.5", "1", "2", "3"])
+    ax.set_yticks([0.5, 1, 2, 5])
+    ax.set_yticklabels(["0.5", "1", "2", "5"])
     ax.minorticks_off()
     ax.set_xticks(x)
     ax.set_xticklabels([f"{p:g}" for _, p in ps])
     ax.set_xlim(-0.4, len(ps) - 0.6)
     ax.set_xlabel("spectral power $p$ (values run; not to scale)")
-    ax.set_ylabel("PCR residual / ridge residual")
+    ax.set_ylabel("$R_{\\rm PCR} / R_{\\rm ridge}$")
     ax.set_title("(b) Above 1: closer to ridge", loc="left")
     ax.grid(axis="y", lw=0.4, alpha=0.5)
     fig.tight_layout(w_pad=0.5)

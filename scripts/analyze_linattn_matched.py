@@ -2,7 +2,9 @@
 
   python3 scripts/analyze_linattn_matched.py
 
-Same runs and learning-rate selection as scripts/analyze_schatten_pilot.py (3 seeds per arm at the selected rate).
+Same runs and learning-rate selection as scripts/analyze_schatten_pilot.py (3 seeds per arm at the selected rate),
+re-run with every step logged by scripts/linattn_dense.py (runs/linattn/dense_1i2.json; falls back to the original
+10-step logs if that file is missing).
 For each run, the gain profile g_j = clip(rho_j / rho_j^*, 0, 1.2) is interpolated (linearly between logged steps)
 at 8 log-spaced excess-loss levels from 0.5 to 0.1 that every arm reaches, and compared with
   a PCR step     1[j <= m],            m = 0..d             -> R_PCR   = min_m sum_j (g_j - 1[j<=m])^2
@@ -20,6 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 from analyze_linattn import metrics  # noqa: E402
 
+DENSE = "runs/linattn/dense_1i2.json"  # scripts/linattn_dense.py: same runs, logged every step, 6,000 steps
 BASE = ["runs/linattn/noise_sweep.json", "runs/linattn/noise_sweep_muonvar_exact.json"]
 PILOT = "runs/linattn/schatten_pilot.json"
 COND = "1/i2-ali"
@@ -29,6 +32,8 @@ ALPHAS = np.logspace(-3, 2, 200)
 
 
 def runs():
+    if os.path.exists(os.path.join(ROOT, DENSE)):
+        return [r for r in json.load(open(os.path.join(ROOT, DENSE))) if r["opt"] in ORDER]
     rs = []
     for f in BASE:
         rs += [r for r in json.load(open(os.path.join(ROOT, f))) if r.get("selected") and r["cond"] == COND
@@ -65,9 +70,10 @@ def main():
         rs = [r for r in runs() if r["opt"] == o]
         if not rs:
             continue
-        ratios, profs = [], []
+        ratios, profs, nlog = [], [], []
         for r in rs:
             m = metrics(r)
+            nlog.append(int(((m["exc"] <= LEVELS[0]) & (m["exc"] >= LEVELS[-1])).sum()))
             lam = np.array(r["lam"])
             res = [residuals(np.clip(g, 0, 1.2), lam) for g in (profile_at(m, lv) for lv in LEVELS) if g is not None]
             if len(res) < len(LEVELS):
@@ -82,7 +88,8 @@ def main():
         prof_lo = np.min(profs, 0) if profs else prof_med
         prof_hi = np.max(profs, 0) if profs else prof_med
         print(f"{o:14s} {rs[0]['lr']:6g} {len(rs)}  " + " ".join(f"{x:6.2f}" for x in R)
-              + f"   {np.nanmedian(R):6.2f}  [{np.nanmin(R):.2f}-{np.nanmax(R):.2f}]   " + " ".join(f"{v:.2f}" for v in prof_med))
+              + f"   {np.nanmedian(R):6.2f}  [{np.nanmin(R):.2f}-{np.nanmax(R):.2f}]   " + " ".join(f"{v:.2f}" for v in prof_med)
+              + f"   | logged profiles in window {nlog}; mean gain dirs 3-8 at 0.1 {np.mean(prof_med[2:]):.3f}")
         out[o] = dict(lr=rs[0]["lr"], ratios=R.tolist(), median=float(np.nanmedian(R)), lo=float(np.nanmin(R)),
                       hi=float(np.nanmax(R)), profile=prof_med.tolist(), profile_lo=prof_lo.tolist(),
                       profile_hi=prof_hi.tolist(), n_profiles=len(profs))

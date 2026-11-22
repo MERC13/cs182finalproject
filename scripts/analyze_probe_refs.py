@@ -7,8 +7,9 @@ lower bound. An estimator that ignores direction j still fits the probe's y with
 predictions there are noise and f_j < 0. This script
   1. computes f_j for the reference estimators (PCR_m, ridge_alpha, OLS) on the SAME probe prompts the models are
      evaluated on (eval seed 30000, 64 prompts per direction, averaged over predictions with 16-40 examples), and
-  2. recomputes the H1 statistic with f_j clipped at 0 (mean of max(f_j, 0) over directions 3-20), per run at the
-     first evaluation at or below each matched error, with paired one-sided t-tests between optimizers.
+  2. recomputes the H1 statistic with f_j clipped at 0 (mean of max(f_j, 0) over directions 3-20), per run at each
+     matched error (profiles interpolated linearly in log error to exactly the level; the first-evaluation read is
+     printed as a robustness check), with paired sign tests and one-sided t-tests between optimizers.
 Writes figures/report/probe_refs.json.
 """
 import json
@@ -48,18 +49,23 @@ def ref_profiles():
     return out
 
 
-def run_profiles():
+EXTRA = [("Muon, exact", "muon_exact_s{}.json")]  # p = 0 by SVD, seed 10 only (Appendix C)
+
+
+def run_profiles(interp=True):
+    """Probe profile f_j per run at each matched error: interpolated to exactly the level (interp=True, the paper's
+    main reads) or at the first evaluation at or below it (interp=False)."""
     prof = {}
-    for name, pat in ARMS:
+    for name, pat in ARMS + EXTRA:
         for s in SEEDS:
             p = os.path.join(ROOT, "runs/garg_scale", pat.format(s))
             if not os.path.exists(p):
                 continue
             r = load(p)
             for lv in LEVELS:
-                i = np.nonzero(r.err_last <= lv)[0]
-                if len(i):
-                    prof[name, s, lv] = (1 - r.probe_err()[int(i[0])]).tolist()
+                v = r.read_at(1 - r.probe_err(), lv, interp=interp)
+                if v is not None:
+                    prof[name, s, lv] = np.asarray(v).tolist()
     return prof
 
 
@@ -70,8 +76,24 @@ def main():
     for name in ["ols", "ridge_0.1", "ridge_1", "ridge_10", "ridge_100", "pcr_8", "pcr_10", "pcr_12", "pcr_14"]:
         f = np.array(refs[name])
         print(f"  {name:10s} raw {f[2:].mean():+.3f} clipped {np.clip(f[2:], 0, None).mean():.3f}  min {f.min():+.2f} ", f)
-    prof = run_profiles()
-    print("\n== H1 statistic per optimizer (mean over seeds), raw and clipped at 0")
+    prof_first = run_profiles(interp=False)
+    prof = run_profiles(interp=True)
+    for tag, P in (("first evaluation at or below the level (robustness check)", prof_first),):
+        print(f"\n== {tag}: paired Muon - other, raw and bounded")
+        for lv in (0.05, 0.04, 0.03):
+            for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1")):
+                ss = [s for s in SEEDS if (a, s, lv) in P and (b, s, lv) in P]
+                if len(ss) < 2:
+                    continue
+                for lab, f in (("raw", lambda x: np.mean(x[2:])), ("bounded", lambda x: np.mean(np.clip(x[2:], 0, None)))):
+                    dd = [f(np.array(P[a, s, lv])) - f(np.array(P[b, s, lv])) for s in ss]
+                    print(f"  error {lv} {a} - {b:12s} {lab:8s} mean {np.mean(dd):+.3f}  > 0 in {sum(x > 0 for x in dd)}/{len(dd)}")
+    print("\n== exact orthogonalization (seed 10) vs Muon and AdamW, seed 10: raw / bounded")
+    for lv in (0.05, 0.04, 0.03):
+        print(f"  error {lv}: " + "  ".join(f"{n} {np.mean(np.array(prof[n, 10, lv])[2:]):.3f} / "
+                                          f"{np.mean(np.clip(np.array(prof[n, 10, lv])[2:], 0, None)):.3f}"
+                                          for n in ("Muon, exact", "Muon", "AdamW") if (n, 10, lv) in prof))
+    print("\n== (main reads, interpolated to the exact level) H1 statistic per optimizer (mean over seeds), raw and clipped at 0")
     for lv in LEVELS:
         print(f"  error {lv}")
         for name, _ in ARMS:
@@ -81,7 +103,7 @@ def main():
                 clp = [np.clip(x[2:], 0, None).mean() for x in v]
                 print(f"    {name:12s} n={len(v)} raw {np.mean(raw):+.3f} +- {np.std(raw, ddof=1):.3f}"
                       f"   clipped {np.mean(clp):.3f} +- {np.std(clp, ddof=1):.3f}")
-        for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1")):
+        for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1"), ("SGD", "AdamW")):
             ss = [s for s in SEEDS if (a, s, lv) in prof and (b, s, lv) in prof]
             if len(ss) >= 2:
                 dd = [np.clip(prof[a, s, lv][2:], 0, None).mean() - np.clip(prof[b, s, lv][2:], 0, None).mean()
@@ -90,7 +112,7 @@ def main():
                       + f"  mean {np.mean(dd):+.3f}  one-sided p = {p_one_sided(dd):.3f}")
     print("\n== paired differences per seed, raw and bounded score (Tables 3 and 5); counts > 0; sign and t tests")
     for lv in (0.05, 0.04, 0.03):
-        for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1")):
+        for a, b in (("Muon", "AdamW"), ("Muon", "SGD"), ("Muon", "Muon, p = 1"), ("SGD", "AdamW")):
             ss = [s for s in SEEDS if (a, s, lv) in prof and (b, s, lv) in prof]
             if len(ss) < 2:
                 continue
@@ -109,7 +131,8 @@ def main():
         v = np.array([prof[name, s, 0.04] for s in SEEDS if (name, s, 0.04) in prof])
         print(f"  {name:12s}", v.mean(0))
     os.makedirs(os.path.join(ROOT, "figures/report"), exist_ok=True)
-    json.dump(dict(refs=refs, runs={f"{k[0]}|{k[1]}|{k[2]}": v for k, v in prof.items()}),
+    json.dump(dict(refs=refs, runs={f"{k[0]}|{k[1]}|{k[2]}": v for k, v in prof.items()},
+                   runs_first={f"{k[0]}|{k[1]}|{k[2]}": v for k, v in prof_first.items()}),
               open(os.path.join(ROOT, "figures/report/probe_refs.json"), "w"), indent=1)
 
 

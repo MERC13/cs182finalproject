@@ -4,7 +4,8 @@ regression (PCR) or to ridge regression?  (Report: H1, second part; Table 4.)
   python scripts/analyze_algorithm.py
 
 For each GPT-2 run, at the first evaluation whose error with the full prompt is at or below each matched level,
-read the logged mean squared distance between the model's predictions and each reference estimator's on the
+read (interpolated linearly in log error to exactly the level) the logged mean squared distance between the
+model's predictions and each reference estimator's on the
 held-out prompts (`dist_8_32`: predictions with 8 or more examples; see icl/estimators.py for the references:
 `pcr_m` is the Bayes version of PCR on the top m population directions, `ridge_l` is ridge with penalty l).
   ratio = (distance to the nearest PCR reference) / (distance to the nearest ridge reference)
@@ -37,13 +38,14 @@ SETTINGS = {
 }
 
 
-def at_level(path, lv):
+def at_level(path, lv, interp=True):
+    """Distances to every reference at matched error lv: interpolated linearly in log error to exactly the level
+    (interp=True, the paper's reads) or at the first evaluation at or below it."""
     r = load(path)
-    d = json.load(open(path))
     i = np.nonzero(r.err_last <= lv)[0]
     if not len(i):
         return None
-    D = d["evals"][int(i[0])]["dist_8_32"]
+    D = {k: float(r.read_at(v, lv, interp=interp)) for k, v in r.dist8.items()}
     pcr = {k: v for k, v in D.items() if k.startswith("pcr_")}
     rid = {k: v for k, v in D.items() if k.startswith("ridge_")}
     kp, kr = min(pcr, key=pcr.get), min(rid, key=rid.get)

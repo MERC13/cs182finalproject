@@ -10,16 +10,16 @@ The key questions and hypotheses in Section~\ref{sec:intro} are those of our rev
 Proposal & This paper & Why \\
 \midrule
 Main model: 4-layer, width-128 GPT-2, $d = 8$, $N = 32$ (Garg scale as a pilot) & Garg et al.'s 12-layer, width-256 GPT-2 with $d = 20$, $n = 40$; the small model in Appendix~\ref{app:small} & The pilot effects held at the standard testbed size, which makes the results comparable with prior work \\
-5 seeds per arm & Garg scale: 5 seeds for SGD, AdamW, Muon and $p=1$; 1 for $p=0$. Linear attention: 3. Small GPT-2: 2 (knob and shift: 1) & CPU budget; the Garg-scale runs took about 70 CPU-hours \\
-Knob at $p \in \{1, 0.25, 0\}$ in the GPT-2 & $p \in \{1, 0\}$ and standard Muon at Garg scale; $p = 0.25$ in progress & Each $p$ needs its own learning rate ($p=1$ needed one $14\times$ lower than Muon's) \\
+5 seeds per arm & Garg scale: 5 seeds for SGD, AdamW, Muon and $p=1$; 1 for $p=0$. Linear attention: 3. Small GPT-2: 2 (knob and shift: 1) & CPU budget; the Garg-scale runs took about 70 hours of run time \\
+Knob at $p \in \{1, 0.25, 0\}$ in the GPT-2, 5 seeds & Run as planned in the small GPT-2, one seed; at Garg scale $p \in \{1, 0\}$ and standard Muon, $p = 0.25$ in progress & Each $p$ needs its own learning rate at Garg scale ($p=1$ needed one $14\times$ lower than Muon's) \\
 Knob at $p \in \{1, 0.5, 0.25, 0.1, 0\}$ in linear attention & Added $p = 0.75$ & To check the weakly flattened end \\
 Own learning-rate sweep per optimizer & Sweeps on the small GPT-2, checked at Garg scale with one seed (Appendix~\ref{app:lr}) & Compute \\
 2,000 test prompts & 1,000 held-out prompts, 64 probe prompts per direction, 256 query-shift prompts per shift & Evaluation runs every 50--100 steps \\
-``Fraction of each direction learned'' & Probe score $\bar f$ and bounded score $\bar f_+$ & $f_j$ has no lower bound, and its negative values mark PCR (Section~\ref{sec:measure}) \\
+``Fraction of each direction learned'' & Probe score $\bar f$ and bounded score $\bar f_+$, read at exactly the matched error & $f_j$ has no lower bound, and its negative values mark PCR (Section~\ref{sec:measure}) \\
 Shifts of which tasks appear (linear model) & Not reported & Outside the three hypotheses \\
-Compute target: about 25 hours & About 85 CPU-hours at Garg scale, including the learning-rate check & Larger model than planned \\
+Compute target: about 25 hours & About 83 hours of run time at Garg scale (about 91 CPU-hours), including the learning-rate check & Larger model than planned \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{First proposal draft.} Our first draft asked four questions (speed, the effect of the amount of imbalance, generalization to rare-ward queries, and which algorithm). It varied the input covariance ($\lambda_j \propto 1$, $1/j$ or $1/j^2$, aligned or rotated) and compared optimizers at equal steps. Pilots answered the speed question: Muon reaches low error about three times sooner (Section~4.1). They found no effect of rotating the inputs on AdamW in our GPT-2. The revised proposal therefore fixed one aligned $1/j^2$ spectrum, compared optimizers at matched error, and added the knob and the linear-attention model. SGD did not leave the initial plateau in the first small GPT-2 at any setting we tried; the token layout and initialization of Section~3.2 fixed this.
+\textbf{First proposal draft.} Our first draft asked four questions (speed, the effect of the amount of imbalance, generalization to rare-ward queries, and which algorithm). It varied the input covariance ($\lambda_j \propto 1$, $1/j$ or $1/j^2$, aligned or rotated) and compared optimizers at equal steps. Pilots answered the speed question: Muon converged four to seven times sooner in the first small GPT-2 (about three times at Garg scale, Section~4.1). They found no effect of rotating the inputs on AdamW in our GPT-2. The revised proposal therefore fixed one aligned $1/j^2$ spectrum, compared optimizers at matched error, and added the knob and the linear-attention model. SGD did not leave the initial plateau in the first small GPT-2 at any setting we tried; the token layout and initialization of Section~3.2 fixed this.

@@ -21,7 +21,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from analyze_linattn import metrics  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FILES = {"1/i2-ali": ["runs/linattn/ood_gamma.json"], "1/i-ali": ["runs/linattn/ood_gamma.json"]}  # full Gamma logged
+FILES = {"1/i2-ali": ["runs/linattn/ood_gamma_dense.json"],  # Gamma logged every step near the levels (linattn_dense_gamma.py)
+         "1/i-ali": ["runs/linattn/ood_gamma.json"]}  # Gamma logged every 10 steps (ood_rerun_linattn.py)
 ARMS = ["gd", "adam", "muon", "muon_pow1", "muon_pow0.5", "muon_pow0.25", "muon_pow0.1", "muon_exact"]
 NAME = {"gd": "SGD", "adam": "Adam", "muon": "Muon (NS)", "muon_exact": "p=0 exact"}
 N, D = 32, 8

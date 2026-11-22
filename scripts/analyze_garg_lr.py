@@ -7,8 +7,8 @@ steps 1,450 and 1,500). Every training prompt is new, so this estimates the popu
 evaluation prompts. The centre rates are read from the main runs (runs/garg_scale, seed 10) at the same steps;
 their trajectories up to step 1,500 are the same as a 1,500-step run's (constant learning rate after warmup).
 Also shown, for information only: error with 40 examples on the held-out prompts at step 1,500, the first step
-with that error <= 0.1, and H1's statistic (weak-direction fraction learned, directions 3-20) at the first evaluation
-with that error <= 0.05, if reached by step 1,500. The last checks that the H1 gap between Muon and AdamW does not
+with that error <= 0.1, and H1's probe score (raw and bounded, directions 3-20) at error 0.05 (first evaluation and
+interpolated to exactly 0.05), if reached by step 1,500. The last checks that the H1 gap between Muon and AdamW does not
 depend on either rate.
 """
 import json
@@ -53,7 +53,13 @@ def row(path):
     i = np.nonzero(r.err_last <= 0.1)[0]
     j = np.nonzero((r.err_last <= H1_LEVEL) & (r.steps <= STEP))[0]
     weak = float(np.mean(1 - r.probe_err()[int(j[0])][2:])) if len(j) else None
-    return dict(status=d.get("status"), train=tl, err=err, t01=int(r.steps[i[0]]) if len(i) else None, weak05=weak)
+    out = dict(status=d.get("status"), train=tl, err=err, t01=int(r.steps[i[0]]) if len(i) else None, weak05=weak,
+               t05=int(r.steps[j[0]]) if len(j) else None)
+    if len(j):  # probe score (raw) and bounded score at error 0.05: first evaluation and interpolated to exactly 0.05
+        for tag, interp in (("first", False), ("interp", True)):
+            f = np.asarray(r.read_at(1 - r.probe_err(), H1_LEVEL, interp=interp))[2:]
+            out[f"raw_{tag}"], out[f"bounded_{tag}"] = float(f.mean()), float(np.clip(f, 0, None).mean())
+    return out
 
 
 def main():
@@ -74,6 +80,13 @@ def main():
             print(f"{arm:12s} {lr:8.2g} {str(x['status']):9s} {x['train']:21.4f} {x['err']:16.4f} "
                   f"{str(x['t01']):>12s} {'-' if x['weak05'] is None else format(x['weak05'], '+.3f'):>11s}{mark}")
         out[arm] = dict(used=USED[arm], best=best, grid=[dict(lr=lr, **(x or {})) for lr, x in res])
+    print("\nAt error 0.05 (runs that reach it by step 1,500): first step; probe score raw / bounded, at the first "
+          "evaluation and interpolated to exactly 0.05")
+    for arm in out:
+        for g in out[arm]["grid"]:
+            if g.get("t05") is not None:
+                print(f"  {arm:12s} lr {g['lr']:<8g} step {g['t05']:5d}   first {g['raw_first']:+.3f} / {g['bounded_first']:.3f}"
+                      f"   interpolated {g['raw_interp']:+.3f} / {g['bounded_interp']:.3f}")
     os.makedirs(os.path.join(ROOT, "figures/report"), exist_ok=True)
     json.dump(out, open(os.path.join(ROOT, "figures/report/garg_lr.json"), "w"), indent=1)
 

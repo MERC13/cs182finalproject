@@ -63,6 +63,22 @@ class Run:
         idx = np.nonzero(series < thr)[0]
         return float(self.steps[idx[0]]) if len(idx) else np.nan
 
+    def read_at(self, values, lv, interp=True):
+        """A per-evaluation quantity (first axis aligned with self.steps) read at matched error lv.
+        interp=True: at exactly lv, interpolating linearly in log error between the last evaluation above lv and the
+        first at or below it (the paper's H1 reads). interp=False: at the first evaluation at or below lv.
+        None if the run never reaches lv."""
+        e = self.err_last
+        idx = np.nonzero(e <= lv)[0]
+        if not len(idx):
+            return None
+        i = int(idx[0])
+        v = np.asarray(values)
+        if not interp or i == 0:
+            return v[i]
+        w = (np.log(e[i - 1]) - np.log(lv)) / (np.log(e[i - 1]) - np.log(e[i]))
+        return v[i - 1] + w * (v[i] - v[i - 1])
+
     def probe_err(self):
         """(S, d) probe relative error per principal axis, averaged over k = 16..32."""
         return self.probe[:, :, 16:].mean(2)
