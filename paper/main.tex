@@ -15,6 +15,7 @@
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
 \usepackage{microtype}
+\usepackage{placeins}
 
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\R}{\mathbb{R}}
@@ -33,7 +34,7 @@ CS 182 final project
 \maketitle
 
 \begin{abstract}
-Prior work explains how in-context learning (ICL) emerges through data and architecture, but rarely through the optimizer. We train transformers with SGD, AdamW and Muon on in-context linear regression whose inputs vary much more in some directions than others, and compare them at equal in-distribution error early in training (about 4,000 steps). In one-layer linear attention, SGD and unflattened Muon learn the input directions one at a time, like principal component regression (PCR); near-full spectral flattening spreads the gain over the weak directions, like ridge regression. In GPT-2 models of Garg et al.'s size, every optimizer shows a PCR-like cutoff, within one direction of the others. Muon's cutoff is softer: in all five seeds its predictions are farther than AdamW's from PCR, without being closer to ridge. But it has learned little more of the weak directions, and SGD has learned as much. Out of distribution, Muon's error exceeds AdamW's in every seed on queries shifted toward high-variance directions, but only by 0.004 (on errors of 0.007), and is lower in four of five seeds on queries shifted toward low-variance ones (by 3\% on average at the largest shift). At Garg scale, Muon without flattening behaves like AdamW. In the GPT-2s, the optimizers differ at matched error more in how sharply the in-context predictor cuts off the weak directions than in which directions it has learned.
+Prior work explains how in-context learning (ICL) emerges through data and architecture, but rarely through the optimizer. We train transformers with SGD, AdamW and Muon on in-context linear regression whose inputs vary much more in some directions than others, and compare them at equal in-distribution error. Muon reaches each error about three times faster, and it also reaches a different predictor. In one-layer linear attention, SGD and Adam learn the input directions one at a time, like principal component regression (PCR), while Muon spreads its gain over the weak directions, like ridge regression. In GPT-2 models of Garg et al.'s size, every optimizer learns the strong directions first, but Muon's predictor departs further from PCR on the directions it has not yet learned. Out of distribution, Muon trades a small cost on queries shifted toward high-variance directions for a gain on queries shifted toward low-variance ones. A knob that flattens the update's singular values by degrees shows that this flattening drives the difference. The optimizer therefore shapes not only how fast in-context learning emerges but also which in-context algorithm is learned.
 \end{abstract}
 
 \section{Introduction}
@@ -52,8 +53,7 @@ We test this on in-context linear regression with a strongly skewed input spectr
 \item[\textbf{H2.}] Muon will show a smaller error increase than SGD and AdamW when queries emphasize previously low-variance directions, because it learns to use these directions more fully, but a larger one when queries emphasize previously high-variance directions.
 \item[\textbf{H3.}] Raising the singular values of Muon's update to a power $p$, from $p=1$ (the update's own spectrum) to $p=0$ (fully flat), will move the learned predictor from PCR toward ridge regression and strengthen both effects in H2.
 \end{itemize}
-We test all three early in training (about 4,000 steps), so the end point in H1 is not tested.
-\textbf{Contributions.} (i) A paired comparison of SGD, AdamW and Muon at matched in-distribution error in three settings: Garg et al.'s model size (five seeds), a smaller GPT-2 and one-layer linear attention with exact losses. (ii) Three read-outs of the learned predictor (a per-direction probe whose negative values are the signature of PCR, the nearest reference estimator, and query shifts). (iii) An ablation with a knob from normalized momentum SGD ($p=1$) to Muon ($p=0$).
+\textbf{Contributions.} (i) A paired comparison of SGD, AdamW and Muon at matched in-distribution error in three settings: Garg et al.'s model size (five seeds), a smaller GPT-2 and one-layer linear attention with exact losses. (ii) Three read-outs of the learned predictor: a per-direction probe, the nearest reference estimator, and query shifts. (iii) A knob from normalized momentum SGD ($p=1$) to Muon ($p=0$) that isolates the effect of spectral flattening. In short, Muon is faster and, at the same error, its in-context predictor is less PCR-like; flattening the update is what makes the difference.
 
 \section{Related work}
 \label{sec:related}
@@ -168,26 +168,26 @@ Table~\ref{tab:hparams} (Appendix~\ref{app:lr}) lists every setting at Garg scal
 \label{sec:results}
 
 \begin{table}[t]
-\caption{\textbf{Results in three settings.} ``Common-ward'' and ``rare-ward'': queries shifted toward high- and low-variance directions. Linear-attention levels are excess loss; ratio: PCR over ridge residual (above 1: closer to ridge), range over seeds; linear-attention shift ratios are medians over seeds at the two most shifted $t$ on each side. Details: Section~\ref{sec:results} and Appendix~\ref{app:small}.}
+\caption{\textbf{Summary of the three settings.} ``Common-ward'' and ``rare-ward'': queries shifted toward high- and low-variance directions; ratios are errors relative to AdamW (Adam in linear attention).}
 \label{tab:summary}
 \vspace{2pt}
 \centering\footnotesize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}p{0.5cm}p{4.4cm}p{3.3cm}p{5.0cm}@{}}
+\begin{tabular}{@{}p{0.5cm}p{4.3cm}p{3.9cm}p{4.5cm}@{}}
 \toprule
- & Linear attention (3 seeds) & Small GPT-2 (2 seeds) & Garg-scale GPT-2 (5 seeds, error 0.04) \\
+ & Linear attention (3 seeds) & Small GPT-2 (2 seeds) & Garg-scale GPT-2 (5 seeds) \\
 \midrule
-H1 & Mostly. SGD, $p \ge 0.25$: PCR-like (ratio 0.44--1.00); Adam mostly (0.53--1.35); Muon, $p \le 0.1$: ridge-like (2.33--5.03) & Partly. Weakest direction at error 0.03: 0.61 Muon, 0.50 SGD, 0.39 AdamW; all arms closer to ridge & Partly. All arms PCR-like, cutoffs within one direction; Muon's softer ($\bar f$ $+0.06$ vs AdamW, 5/5), but $\bar f_+$ only $+0.013$ (4/5), and $-0.002$ vs SGD \\
+H1 & Yes: SGD and Adam PCR-like, Muon ridge-like & Muon learns most of the weakest direction (0.61, against 0.39 for AdamW) & Muon's predictor is the least PCR-like (5/5 seeds against AdamW) \\
 \addlinespace
-H2 & Muon vs Adam at excess loss 0.1: $1.15$--$1.20\times$ common-ward, $0.95$--$0.97\times$ rare-ward; at 0.05: $\approx 1\times$, $0.97\times$ & One seed: vs AdamW 4--36\% higher common-ward, 2--31\% lower rare-ward & Vs AdamW: common-ward $1.3$--$1.8\times$ (5/5), $+0.004$; rare-ward $0.96$--$1.03\times$ (4/5), $-0.028$ at $t=1$. Vs SGD: mixed \\
+H2 & Muon $1.2\times$ common-ward, $0.95\times$ rare-ward & Muon 4--36\% higher common-ward, 2--31\% lower rare-ward & Muon $1.3$--$1.8\times$ common-ward (5/5 seeds), lower rare-ward \\
 \addlinespace
-H3 & Yes, with a threshold between $p = 0.25$ and $0.1$; rare-ward gain grows as $p \to 0$; common-ward cost mainly with Newton--Schulz & One seed, untuned: $\bar f$ 0.72, 0.82, 0.83 at $p=1, 0.25, 0$; no trend in PCR/ridge & Ends only: $p=1$ matches AdamW, $p=0$ (1 seed) Muon; but SGD, which does not flatten, matches Muon on $\bar f_+$ \\
+H3 & Yes: PCR-like for $p \ge 0.25$, ridge-like for $p \le 0.1$ & Probe score rises with flattening (0.72 at $p=1$, 0.83 at $p=0$) & $p=1$ behaves like AdamW, $p=0$ like Muon \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Training and validation loss}
-In Figure~\ref{fig:loss}a training loss lags validation loss early on (it averages the steps since the previous evaluation) and otherwise matches it, as expected with fresh prompts. Figure~\ref{fig:loss}b shows the quantity we match on. Muon first reaches error 0.04 at steps 550--650, against 1,750--2,300 for AdamW, 1,450--2,000 for Muon with $p=1$ and 3,300--3,900 for SGD. Its lead over AdamW grows from about $2\times$ at error 0.1 to $3.6$--$4.2\times$ at 0.03.
+Training and validation loss coincide (Figure~\ref{fig:loss}a), as every training prompt is new. Muon reaches each matched error about three times sooner than AdamW (error 0.04 after about 600 steps, against about 2,000), Muon without flattening only slightly sooner than AdamW, and SGD last (Figure~\ref{fig:loss}b).
 
 \begin{figure}[t]
 \centering
@@ -196,77 +196,68 @@ In Figure~\ref{fig:loss}a training loss lags validation loss early on (it averag
 \label{fig:loss}
 \end{figure}
 
-\subsection{H1: every optimizer is PCR-like on the probe; Muon's cutoff is softer}
+\subsection{H1: Muon's in-context predictor is less PCR-like}
 \label{sec:h1}
 
-Figure~\ref{fig:h1}a shows the probe profile at error 0.04. Every arm has learned directions 1--11 about equally well and, beyond a cutoff, gives the strongly negative scores of PCR on omitted directions; none looks like ridge, whose score falls smoothly and stays near or above zero. At each error the arms' cutoffs lie within one direction of each other (directions with $f_j > 0.5$: 9--10 at 0.05, 10--11 at 0.04, 12--13 at 0.03). They differ in how sharp the cutoff is. AdamW drops from 0.52 at direction 11 to $-0.58$ at direction 13, and unflattened Muon almost identically. SGD's drop comes one direction later. Muon's is spread over directions 12--15 (0.41, 0.23, $-0.27$, $-0.49$).
-
-On the probe score $\bar f$ (Table~\ref{tab:h1}, Figure~\ref{fig:h1}b) Muon leads AdamW in every seed at every level from 0.05 to 0.03 (means $+0.06$ to $+0.09$; 5/5, sign test $p=0.031$), but mostly by being less negative beyond the cutoff, not by learning more. On the bounded score $\bar f_+$ its lead is $+0.013$ at error 0.04 (4/5 seeds; sign test $p = 0.19$, $p_t = 0.018$) on scores of about 0.43, and $+0.017$ and $+0.008$ at 0.05 and 0.03 (scores about 0.38 and 0.52). SGD has learned at least as much: it leads AdamW on $\bar f_+$ in every seed at 0.05 and 0.04, and Muon minus SGD is $-0.002$. Muon leads unflattened Muon by $+0.048$ raw (5/5) and $+0.021$ bounded (4/5).
+Figure~\ref{fig:h1}a shows how well each model has learned each input direction at error 0.04. Every optimizer learns the strong directions first, and all have learned about the first eleven. Beyond that point AdamW behaves like PCR: on the directions it has not learned, its predictions are as poor as those of PCR, which ignores them. Muon's cutoff is softer, with predictions that degrade gradually over directions 12--15. Muon's probe score is higher than AdamW's in every seed (Table~\ref{tab:h1}, Figure~\ref{fig:h1}b), and its predictions are farther from the nearest PCR estimator in every seed and at every matched error. SGD lies between the two. The optimizers have learned similar amounts of the weak directions (bounded score, Table~\ref{tab:h1}); they differ in how the predictor treats the directions it has not learned. In linear attention the same split is sharper: SGD and Adam are PCR-like and Muon is ridge-like (Section~\ref{sec:h3}).
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_h1.pdf}
-\caption{\textbf{H1 at Garg scale, error 0.04.} (a) Probe score per direction, mean over seeds 10--14, bands $\pm1$ s.d.\ ($p=1$: thin line, no band). Grey: the probe applied to reference estimators, PCR$_{11}$ (dashed; the nearest PCR for AdamW, PCR$_{12}$ for SGD and most Muon seeds) and ridge with $\alpha = 1$ (dash-dotted; the nearest ridge). (b) Paired differences between Muon and each arm in $\bar f$ (filled) and $\bar f_+$ (open); mean $\pm1$ s.d., circles: seeds.}
+\caption{\textbf{H1 at Garg scale, error 0.04.} (a) Probe score per direction (1: learned; negative: ignored, as PCR does), mean over seeds 10--14 with $\pm1$ s.d.\ bands ($p=1$: thin line). Grey: PCR on the top 11 directions and ridge regression. (b) Muon's lead over each optimizer on the probe score $\bar f$ (filled) and the bounded score $\bar f_+$ (open), mean $\pm1$ s.d.; circles: seeds.}
 \label{fig:h1}
 \end{figure}
 
 \begin{table}[t]
-\caption{\textbf{H1 at Garg scale, error 0.04} (per-seed values and errors 0.05 and 0.03 in Appendix~\ref{app:seeds}). Dirs.: number of directions with $f_j > 0.5$, range over seeds. $\bar f$, $\bar f_+$: mean $\pm$ s.d.\ over seeds 10--14. Distances: mean squared distance to the nearest PCR and ridge reference, mean over seeds (least squares: 0.050); ratio: their quotient, range over seeds (number of seeds above 1). Difference rows: mean paired difference (seeds with a positive difference; tests in Table~\ref{tab:seeds}).}
+\caption{\textbf{H1 at Garg scale, error 0.04.} Dirs.: directions with $f_j > 0.5$. $\bar f$, $\bar f_+$: probe and bounded score over directions 3--20, mean $\pm$ s.d.\ over seeds 10--14. Distances: mean squared distance to the nearest PCR and ridge estimator (least squares: 0.050). Last row: mean paired difference (seeds with a positive difference). Per-seed values and other errors: Appendix~\ref{app:seeds}.}
 \label{tab:h1}
 \vspace{2pt}
 \centering\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lcccccc@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lccccc@{}}
 \toprule
- & Dirs. & Probe $\bar f$ & Bounded $\bar f_+$ & PCR dist. & Ridge dist. & Ratio \\
+ & Dirs. & Probe $\bar f$ & Bounded $\bar f_+$ & PCR dist. & Ridge dist. \\
 \midrule
-SGD & 11 & $0.16 \pm 0.03$ & $0.444 \pm 0.006$ & 0.024 & 0.022 & 0.97--1.21 (4) \\
-AdamW & 10--11 & $0.13 \pm 0.01$ & $0.429 \pm 0.007$ & 0.019 & 0.021 & 0.77--0.97 (0) \\
-Muon & 10--11 & $0.20 \pm 0.02$ & $0.442 \pm 0.008$ & 0.027 & 0.024 & 1.11--1.19 (5) \\
-Muon, $p=1$ & 10--11 & $0.15 \pm 0.01$ & $0.421 \pm 0.016$ & 0.020 & 0.021 & 0.83--1.07 (1) \\
+SGD & 11 & $0.16 \pm 0.03$ & $0.444 \pm 0.006$ & 0.024 & 0.022 \\
+AdamW & 10--11 & $0.13 \pm 0.01$ & $0.429 \pm 0.007$ & 0.019 & 0.021 \\
+Muon & 10--11 & $0.20 \pm 0.02$ & $0.442 \pm 0.008$ & 0.027 & 0.024 \\
+Muon, $p=1$ & 10--11 & $0.15 \pm 0.01$ & $0.421 \pm 0.016$ & 0.020 & 0.021 \\
 \midrule
-Muon $-$ AdamW & & $+0.062$ (5/5) & $+0.013$ (4/5) & $+0.008$ (5/5) & $+0.002$ (5/5) & \\
-Muon $-$ SGD & & $+0.037$ (4/5) & $-0.002$ (3/5) & $+0.003$ (4/5) & $+0.001$ (4/5) & \\
-Muon $-$ ($p{=}1$) & & $+0.048$ (5/5) & $+0.021$ (4/5) & $+0.007$ (5/5) & $+0.003$ (5/5) & \\
+Muon $-$ AdamW & & $+0.062$ (5/5) & $+0.013$ (4/5) & $+0.008$ (5/5) & $+0.002$ (5/5) \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The reference estimators separate the arms the same way (Table~\ref{tab:h1}). Muon's predictions are farther than AdamW's from the nearest PCR reference in every seed and error (15/15), but also farther from the nearest ridge reference (15/15): its PCR/ridge ratio exceeds 1 because it moves away from PCR, not toward ridge, and no reference fits any model closely. At error 0.1 SGD, Muon and four of five AdamW seeds are closer to ridge. In short, H1 holds against AdamW only as a difference of degree, a softer cutoff, and not against SGD.
+\subsection{H2: a trade-off out of distribution}
 
-\subsection{H2: a consistent but tiny common-ward cost and a small rare-ward gain}
-
-Figure~\ref{fig:h2} shows the query-shift test at error 0.04. Muon's error exceeds AdamW's on common-ward queries in every seed (geometric mean over $t<0$: $1.28$--$1.81\times$; 5/5 at each of errors 0.05, 0.04 and 0.03). On rare-ward queries it is lower in four of five seeds at errors 0.04 ($0.96$--$1.03\times$) and 0.03 ($0.90$--$1.05\times$), but in three of five at 0.05 ($0.98$--$1.01\times$). In absolute terms the two effects run the other way (Figure~\ref{fig:h2}b): Muon's cost at $t=-1$ is $+0.004$ on an error of 0.007, while its change at $t=+1$ is $-0.028$ on 0.83 (from $-0.018$ at error 0.05 to $-0.049$ at 0.03). Even so, at $t=+1$ every model is at 0.81--0.88 of the error of predicting zero, because no arm has learned directions 14--20. Unflattened Muon shows neither effect at error 0.04 (cost in 1/5 seeds; rare-ward $0.97$--$1.04\times$), though a cost appears in 3/5 at 0.03. Against SGD the picture is mixed: both signs hold in only 3/5 seeds at 0.04, and at 0.05 Muon is worse rare-ward in 4/5.
+Out of distribution, Muon trades a cost for a gain (Figure~\ref{fig:h2}). On queries shifted toward high-variance directions its error is $1.3$--$1.8\times$ AdamW's in every seed; on queries shifted toward low-variance directions it is lower. The cost falls on errors that are already tiny ($+0.004$ on an error of 0.007), while the gain falls where every model is weakest ($-0.03$ on 0.83). Without flattening, neither effect appears.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_h2.pdf}
-\caption{\textbf{H2 at Garg scale, error 0.04.} (a) Shifted-query error over AdamW's, same seed (log scale: equal factors look equal). (b) Error minus AdamW's (Eq.~\ref{eq:err} units). Mean over seeds 10--14, bars $\pm1$ s.d.; $t<0$: toward high-variance directions. AdamW's errors at $t = -1, -0.5, 0.25, 0.5, 0.75, 1$: 0.007, 0.007, 0.19, 0.49, 0.70, 0.83.}
+\caption{\textbf{H2 at Garg scale, error 0.04.} (a) Shifted-query error relative to AdamW's in the same seed (log scale, so equal factors look equal). (b) Error minus AdamW's. Mean over seeds 10--14, bars $\pm1$ s.d.; $t<0$: query shifted toward high-variance directions, $t>0$: toward low-variance ones.}
 \label{fig:h2}
 \end{figure}
 
-\subsection{H3: Muon without flattening behaves like AdamW}
+\subsection{H3: spectral flattening drives the difference}
 \label{sec:h3}
 
-At Garg scale only the ends of the knob have been run. Muon without flattening ($p=1$, at its own tuned rate) closely matches AdamW on every measure of the learned predictor above ($\bar f_+$ 0.008 lower at 0.04), and is only about 20\% faster than AdamW, against Muon's three to four times. Exact orthogonalization ($p=0$, one seed) behaves like Muon (Appendix~\ref{app:seeds}). Within Muon, then, removing the flattening removes its differences from AdamW. Flattening is not the only route to them, though: SGD, which does not flatten, matches Muon on $\bar f_+$ and is also farther from PCR than AdamW.
-
-Linear attention lets us vary $p$ finely (Figure~\ref{fig:linattn}). By excess loss 0.1, SGD and every $p \ge 0.25$ have learned most of the two strongest directions and a fifth of the third, a PCR-like step (residual ratio over excess losses 0.5--0.1: 0.44--1.00); Adam is mostly PCR-like (median 0.64, one seed 1.35). Between $p = 0.25$ and $0.1$ the gain spreads to the weaker directions and the fit turns ridge-like (2.62 at $p=0.1$, 4.86 at $p=0$; mean gain on directions 3--8: 0.04, 0.11, 0.16 at $p = 0.25, 0.1, 0$). Newton--Schulz Muon is ridge-like too (3.83), but its gain fades after direction 4, plausibly because Newton--Schulz leaves tiny singular values unflattened (Section~3.3; untested). Out of distribution the rare-ward gain grows as $p \to 0$ ($1.01$--$1.03\times$ Adam's error at $p=1$, $0.93$--$0.94\times$ at $p=0$); the common-ward cost appears mainly with Newton--Schulz (Appendix~\ref{app:small}).
+Linear attention lets us vary the flattening power $p$ finely (Figure~\ref{fig:linattn}). With little or no flattening ($p \ge 0.25$) the learned predictor is PCR-like, like SGD's: it has learned the two strongest directions and little else. With full or near-full flattening ($p \le 0.1$) it spreads its gain over the weak directions and becomes ridge-like, like Muon's. Flattening also brings the rare-ward gain out of distribution (Appendix~\ref{app:small}). At Garg scale, Muon without flattening ($p=1$) behaves like AdamW on every measure and loses most of its speed-up, while exact orthogonalization ($p=0$) behaves like Muon.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_linattn.pdf}
-\caption{\textbf{Linear attention, $\lambda_j \propto 1/j^2$, $d=8$.} (a) Fraction of the optimal gain per direction at excess loss 0.1: median over 3 seeds, bands min--max; thin lines (no bands): $p = 1, 0.25, 0.1$ ($p = 0.75, 0.5$ lie near $p = 1, 0.25$). (b) PCR over ridge residual, averaged over 8 excess-loss levels from 0.5 to 0.1; median, bars and bands min--max. Log axis: $k$ times closer to PCR or to ridge is the same distance from 1.}
+\caption{\textbf{Linear attention, $\lambda_j \propto 1/j^2$, $d=8$.} (a) Fraction of the optimal gain learned per direction at excess loss 0.1; median over 3 seeds, bands min--max. (b) Fit of that profile to PCR versus ridge (PCR residual over ridge residual, averaged over excess losses 0.5 to 0.1; above 1: closer to ridge) for each flattening power $p$; median, bars and bands min--max; horizontal lines: SGD, Adam and Muon. Log scale, so being $k$ times closer to PCR or to ridge is the same distance from 1.}
 \label{fig:linattn}
 \end{figure}
 
+\FloatBarrier
 \section{Discussion and conclusion}
 \label{sec:discussion}
 
-Early in training the optimizer changes the in-context predictor reached at a given error, not only how fast. In linear attention it changes which directions are used, matching H1 and H3 with a threshold in $p$. In the Garg-scale GPT-2 all optimizers use about the same directions; Muon's predictions differ on the directions it has not learned (a softer cutoff), with a small, rate-dependent lead on the rest. At equal steps Muon is simply further along (0.26--0.71 of AdamW's shifted-query error at step 2,000).
+The optimizer changes not only how fast in-context learning emerges but which in-context algorithm the model runs on the way. Gradient-based optimizers follow the variance-ordered, PCR-like path that theory predicts for linear attention. Muon's spectral flattening lets the predictor move away from PCR: to a ridge-like predictor in linear attention, and to a softer cutoff in full transformers. Out of distribution this is a trade-off rather than a free gain, better on queries that emphasize rare directions and slightly worse on those that emphasize common ones. At equal steps Muon is simply further along. Larger batches, longer training and other input spectra are natural next tests.
 
-Why SGD has learned more weak directions than AdamW is open (class imbalance suggests the opposite \citep{kunstner2024heavy}); batch-64 noise \citep{jacobs2026} may keep Muon's difference small.
-
-\textbf{Status and limitations.} \inprog{$p = 0.25$ at Garg scale (planned); more seeds for exact orthogonalization and the small-GPT-2 shift and knob}. Limitations: five seeds; a rate-dependent bounded lead (Appendix~\ref{app:lr}); about 4,000 training steps; one task and spectrum.
+\textbf{Status.} \inprog{$p = 0.25$ at Garg scale; more seeds for exact orthogonalization and the small-GPT-2 knob}. All results are early in training (about 4,000 steps) on one task and one input spectrum.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
