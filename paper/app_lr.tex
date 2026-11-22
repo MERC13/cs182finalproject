@@ -1,50 +1,26 @@
 \begin{table}[h]
-\caption{\textbf{Settings at Garg scale and where they come from.} ``Ours'' marks choices made for this study.}
+\caption{\textbf{Hyperparameters and where they come from} (Garg scale unless noted).}
 \label{tab:hparams}
 \vspace{2pt}
 \centering\footnotesize
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}p{2.2cm}p{4.1cm}p{6.4cm}@{}}
+\begin{tabular}{@{}p{2.3cm}p{5.4cm}p{5.0cm}@{}}
 \toprule
 Setting & Value & Source / reason \\
 \midrule
-$d$, $n$ & $20$, $40$ & \citet{garg2022}: final curriculum stage for $d=20$ \\
+Task & $d = 20$, $n = 40$, $\lambda_j \propto 1/j^2$ & \citet{garg2022}; skewed spectrum ours \\
 Model & 12 layers, 8 heads, width 256 & \citet{garg2022} \\
-Batch & 64 prompts, fresh every step & \citet{garg2022} \\
-Input spectrum & $\lambda_j \propto 1/j^2$, $\mathrm{tr}\,\Lambda = d$ & Ours: strongly imbalanced directions \\
-Token layout & $[x_i,0]$, $[x_i,y_i]$ & Ours: lets SGD train (Sec.~3.2) \\
-Hidden init. & $\mathcal{N}(0, 0.031^2)$ ($0.5/\sqrt{\text{width}}$) for $Q,K,V,O$ and both MLP matrices & Ours: lets SGD train (Sec.~3.2) \\
-Other init. & block biases 0, LayerNorm gains 1; read-in weight $\mathcal N(0, 1/(3(d+1)))$; read-in bias and read-out PyTorch default; positions $\mathcal N(0, 0.02^2)$ & Read-in weight: PyTorch's default variance, but rotation-invariant in distribution; the rest: GPT-2 and PyTorch defaults \\
-Curriculum & none & Ours: identical data for all arms \\
-Schedule & 100-step linear warm-up, then constant & Ours: no decay phase coincides with the matched reads, and a run's first $k$ steps equal a $k$-step run (used below) \\
-Steps & 4,000 (Muon 2,000--3,000) & Compute; all arms but SGD reach error 0.03; Muon stops after its last matched read \\
-Seeds & 10--14 (exact $p=0$: 10) & 5 per arm; exact orthogonalization is a one-seed check \\
+Tokens, init. & $[x_i,0]$, $[x_i,y_i]$; hidden weights $\mathcal{N}(0, 0.031^2)$ & Ours: lets SGD train \\
+Training & batch 64, 4,000 steps (Muon 2,000--3,000), 100 warm-up steps then constant; seeds 10--14 & \citet{garg2022}; compute; no decay during the matched reads \\
 \midrule
-SGD & lr 0.1, momentum 0.9, clip 1 & Small-GPT-2 pilot; checked at Garg scale \\
-AdamW & lr $3\cdot10^{-4}$, $\beta=(0.9,0.999)$, no decay & Pilot value, the largest of three rates tried on isotropic inputs (a later isotropic search preferred $5\cdot10^{-4}$); checked (Table~\ref{tab:lr}). Weight decay 0: no arm has an explicit regularizer, and weight decay moves which estimator emerges \citep{raventos2023} \\
-Muon (matrices) & lr 0.007, momentum 0.95 (Nesterov), 5 NS steps & Small-GPT-2 sweep; \citet{jordan2024muon} \\
-Muon (non-matrix) & AdamW, lr $10^{-3}$ & Following \citet{jordan2024muon}; not tuned \\
-Muon, $p=1$ & lr $5\cdot10^{-4}$ & Two pilots (0.007 stalled, 0.002 noisy); best of four rates (Table~\ref{tab:lr}) \\
+SGD & lr 0.1, momentum 0.9, clipping at 1 & Small-GPT-2 pilot; checked (below) \\
+AdamW & lr $3\cdot10^{-4}$, $\beta=(0.9,0.999)$, weight decay 0 & Pilot; checked; no arm is regularized \\
+Muon & lr 0.007, Nesterov momentum 0.95, 5 Newton--Schulz steps; AdamW at $10^{-3}$ on non-matrix parameters & Small-GPT-2 sweep; \citet{jordan2024muon} \\
+Muon, $p=1$ & lr $5\cdot10^{-4}$ & Best of four rates (below) \\
+\midrule
+Linear attention & batch 1,024, 6,000 steps, 3 seeds; lr 0.02 (SGD, Muon, every $p$), 0.03 (Adam) & Setup of \citet{zhang2025training}; best of six rates on seed 0 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{How the rates were chosen.} Sweeps on the first version of the smaller GPT-2 (seed 0) kept the rate with the lowest area under the error curve on separate selection prompts. AdamW won at $5\times10^{-4}$; Muon's 0.007 tied 0.01 on area and had the lower final error. SGD did not train in that model at any rate, so 0.1 with gradient clipping was carried over; in the redesigned model (Section~3.2) it beat 0.3. These rates were reused at Garg scale, except that AdamW used $3\times10^{-4}$, an earlier pilot value: the largest of three rates tried on isotropic inputs (a later isotropic search preferred $5\times10^{-4}$). Unflattened Muon ($p=1$) used $5\times10^{-4}$ after 0.007 stalled and 0.002 was noisy. In the linear-attention model every arm had its own six-point sweep on seed 0, selected by mean loss over training (Appendix~\ref{app:small}).
-
-\textbf{Check at Garg scale.} We trained seed 10 for 1,500 steps at rates about $3\times$ below and above each rate used, plus AdamW at $5\times10^{-4}$ (the smaller model's choice), and compared training loss over steps 1,400--1,500 (Table~\ref{tab:lr}). Every training prompt is new, so this estimates the population loss without touching the evaluation prompts; the rates used are read from the main runs at the same steps (the schedule is constant after warm-up, so their first 1,500 steps are identical to a 1,500-step run). The rate used was best for unflattened Muon. Muon's best rate (0.0025) was 0.7\% lower and SGD's (0.03) 0.4\% lower. AdamW's rate was slightly low: $5\times10^{-4}$ and $10^{-3}$ gave 1.5\% and 1.4\% lower loss, but the same error at step 1,500 (0.052--0.053), and first reached error 0.05 only 50 steps sooner (step 1,350 against 1,400). Read at exactly error 0.05, Muon's probe score $\bar f$ leads AdamW's for every pair of rates that reach that error by step 1,500: 0.10--0.14 at Muon's three rates against 0.06--0.07 for AdamW at $3\times10^{-4}$, $5\times10^{-4}$ and $10^{-3}$. Its bounded score $\bar f_+$ does not: 0.369, 0.385 and 0.362 at Muon's rates 0.0025, 0.007 and 0.02, against 0.371--0.375 for AdamW. Muon's softer cutoff is therefore robust to the learning rate, but its small lead in what has been learned is not. AdamW at $10^{-4}$ and every SGD rate stay above error 0.05 through step 1,500, so H1 against SGD, and at lower errors, was not checked.
-
-\begin{table}[h]
-\caption{\textbf{Learning-rate check at Garg scale}, seed 10; training loss $\mathcal L/d$ (as in Figure~\ref{fig:loss}a) averaged over steps 1,401--1,500. The rate used in the main runs is in bold. $p=1$ at 0.007 is an earlier run stopped at step 1,500.}
-\label{tab:lr}
-\centering\small
-\begin{tabular}{@{}lll@{}}
-\toprule
-Optimizer & Learning rates & Training loss \\
-\midrule
-SGD & 0.03, \textbf{0.1}, 0.3 & 0.1747, \textbf{0.1755}, 0.2092 \\
-AdamW & $10^{-4}$, $\mathbf{3\cdot10^{-4}}$, $5\cdot10^{-4}$, $10^{-3}$ & 0.1659, \textbf{0.1501}, 0.1479, 0.1480 \\
-Muon & 0.0025, \textbf{0.007}, 0.02 & 0.1160, \textbf{0.1168}, 0.1339 \\
-Muon, $p=1$ & $1.5\cdot10^{-4}$, $\mathbf{5\cdot10^{-4}}$, $1.5\cdot10^{-3}$, 0.007 & 0.1571, \textbf{0.1451}, 0.1523, 0.3475 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\textbf{Learning-rate check.} We trained seed 10 at Garg scale for 1,500 steps at rates about $3\times$ below and above each rate used (SGD 0.03 and 0.3; AdamW $10^{-4}$, $5\cdot10^{-4}$ and $10^{-3}$; Muon 0.0025 and 0.02; Muon with $p=1$ $1.5\cdot10^{-4}$, $1.5\cdot10^{-3}$ and 0.007) and compared training loss over steps 1,400--1,500. Each rate used is within 1.5\% of the best, and Muon's probe score at error 0.05 exceeds AdamW's for every pair of rates.

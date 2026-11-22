@@ -9,20 +9,20 @@ JSON logs; no retraining is needed. Numbering below follows the paper.
 
 ```bash
 python3 scripts/report_data.py             # Figure 2 data -> figures/report/*.json
-python3 scripts/analyze_probe_refs.py      # H1: probe and bounded scores at exactly each matched error, reference profiles (Tables 2 and 5, Figure 3)
+python3 scripts/analyze_probe_refs.py      # H1: probe and bounded scores, per-seed differences, reference profiles (Table 1, Figure 3)
 python3 scripts/linattn_dense.py runs/linattn/dense_1i2.json        # (already committed) linear attention, every step logged
 python3 scripts/linattn_dense_gamma.py runs/linattn/ood_gamma_dense.json  # (already committed) Gamma every step near the levels
 python3 scripts/analyze_linattn_matched.py # linear attention: PCR/ridge ratio at matched excess loss (Figure 5)
 python3 scripts/make_paper_figures.py      # Figures 2-5 -> paper/figures/*.pdf
-python3 scripts/analyze_garg_seeds.py      # speed, H2 in Eq. 2 units (Table 6), interpolated reads, step 2,000
-python3 scripts/analyze_algorithm.py       # H1: distances to the nearest PCR and ridge references (Table 2)
-python3 scripts/analyze_garg_scale.py      # seed-10 detail, including exact Muon (Appendix C)
+python3 scripts/analyze_garg_seeds.py      # speed and H2 (Figure 4): query shifts in Eq. 2 units, per seed
+python3 scripts/analyze_algorithm.py       # H1: distances to the nearest PCR and ridge references (Table 1)
+python3 scripts/analyze_garg_scale.py      # seed-10 detail, including exact Muon
 python3 scripts/analyze_schatten_pilot.py  # linear attention: the spectral knob
-python3 scripts/ood_map_linattn.py         # linear attention: query shifts at matched excess loss (Appendix D)
-python3 scripts/analyze_init.py            # small GPT-2: H1 (Table 1)
-python3 scripts/analyze_knob_gpt2.py       # small GPT-2: knob (Table 1)
-python3 scripts/analyze_ood_gpt2.py        # small GPT-2: query shifts (Table 1)
-python3 scripts/analyze_garg_lr.py         # learning-rate check at Garg scale (Appendix B, Table 4)
+python3 scripts/ood_map_linattn.py         # linear attention: query shifts at matched excess loss (Appendix C)
+python3 scripts/analyze_init.py            # small GPT-2: H1 (Appendix C)
+python3 scripts/analyze_knob_gpt2.py       # small GPT-2: knob (Appendix C)
+python3 scripts/analyze_ood_gpt2.py        # small GPT-2: query shifts (Appendix C)
+python3 scripts/analyze_garg_lr.py         # learning-rate check at Garg scale (Appendix B)
 cd paper && latexmk -pdf main.tex          # the PDF
 ```
 
