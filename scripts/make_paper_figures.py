@@ -150,7 +150,7 @@ def fig_h1(level=0.04):
     ax.set_xticks([1, 5, 10, 15, 20])
     ax.set_xlim(0.5, 20.5)
     ax.set_ylim(-1.05, 1.1)
-    ax.set_xlabel("input direction $j$ (strongest $\\rightarrow$ weakest)")
+    ax.set_xlabel("input direction $j$ (most common $\\rightarrow$ rarest)")
     ax.set_ylabel("probe score $f_j$")
     ax.set_title(f"(a) What is learned, at error {level}")
     ax.legend(frameon=False, loc="center left", bbox_to_anchor=(0.01, 0.42), fontsize=7.5, handlelength=1.8)
@@ -248,7 +248,7 @@ def fig_linattn():
         ax.plot(j, r["profile"], LS[arm], color=COL[arm], marker="o", ms=3, lw=1.8 if arm == "Muon" else 1.3,
                 label=NAME[arm].replace("AdamW", "Adam"), zorder=3)
         ax.fill_between(j, r["profile_lo"], r["profile_hi"], color=COL[arm], alpha=0.15, lw=0)
-    ax.set_xlabel("input direction $j$ (strongest $\\rightarrow$ weakest)")
+    ax.set_xlabel("input direction $j$ (most common $\\rightarrow$ rarest)")
     ax.set_ylabel("fraction of optimal gain")
     ax.set_title("(a) What is learned")
     ax.set_ylim(-0.05, 1.25)

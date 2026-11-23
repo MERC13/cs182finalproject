@@ -1,5 +1,5 @@
 \begin{table}[h]
-\caption{\textbf{Settings and design choices, with the reason for each} (Garg scale unless noted).}
+\caption{\textbf{Settings and design choices, with the reason for each} (12-layer GPT-2 unless noted).}
 \label{tab:hparams}
 \vspace{2pt}
 \centering\footnotesize
@@ -34,4 +34,4 @@ Query shift & $x_q \sim \mathcal N(0,\Lambda^{1-2t})$, $t \in [-1, 1]$, 256 prom
 
 \textbf{How the learning rates were chosen.} SGD, AdamW and Muon rates come from sweeps on a smaller GPT-2 (seed 0), keeping the rate with the lowest area under the error curve on separate selection prompts: Muon's 0.007 tied 0.01 and had the lower final error; SGD's 0.1 with clipping beat 0.3; AdamW used $3\cdot10^{-4}$ from an earlier pilot on isotropic inputs. Muon with $p=1$ stalled at 0.007 and was noisy at 0.002, so we used $5\cdot10^{-4}$. In linear attention each optimizer and each $p$ had its own six-point sweep on seed 0, selected by mean loss over training.
 
-\textbf{Learning-rate check.} We trained seed 10 at Garg scale for 1,500 steps at rates about $3\times$ below and above each rate used (SGD 0.03 and 0.3; AdamW $10^{-4}$, $5\cdot10^{-4}$ and $10^{-3}$; Muon 0.0025 and 0.02; Muon with $p=1$ $1.5\cdot10^{-4}$, $1.5\cdot10^{-3}$ and 0.007) and compared training loss over steps 1,400--1,500. Each rate used is within 1.5\% of the best, and Muon's probe score at error 0.05 exceeds AdamW's for every pair of rates.
+\textbf{Learning-rate check.} We trained seed 10 in the 12-layer GPT-2 for 1,500 steps at rates about $3\times$ below and above each rate used (SGD 0.03 and 0.3; AdamW $10^{-4}$, $5\cdot10^{-4}$ and $10^{-3}$; Muon 0.0025 and 0.02; Muon with $p=1$ $1.5\cdot10^{-4}$, $1.5\cdot10^{-3}$ and 0.007) and compared training loss over steps 1,400--1,500. Each rate used is within 1.5\% of the best, and Muon's probe score at error 0.05 exceeds AdamW's for every pair of rates.
