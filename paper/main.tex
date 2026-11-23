@@ -22,7 +22,7 @@
 \newcommand{\todo}[1]{\textcolor{red}{[#1]}}
 \newcommand{\inprog}[1]{\textcolor{orange!70!black}{[In progress: #1]}}
 
-\title{Does the Optimizer Change the In-Context Algorithm?\\SGD, AdamW and Muon on Anisotropic Linear Regression}
+\title{How Optimizers Shape In-Context Learning}
 
 \author{
 Jonah Cha \quad Kevin Chu \quad Ethan Dao \quad Isabella Hu\\
@@ -34,30 +34,12 @@ CS 182 final project
 \maketitle
 
 \begin{abstract}
-Prior work explains how in-context learning (ICL) emerges through data and architecture, but rarely through the optimizer. We train transformers with SGD, AdamW and Muon on in-context linear regression whose inputs vary much more in some directions than others, and compare them at equal in-distribution error. Muon reaches each error about three times faster, and it also reaches a different predictor. In one-layer linear attention, SGD and Adam learn the input directions one at a time, like principal component regression (PCR), while Muon spreads its gain over the weak directions, like ridge regression. In GPT-2 models of Garg et al.'s size, every optimizer learns the strong directions first, but Muon's predictor departs further from PCR on the directions it has not yet learned. Out of distribution, Muon trades a small cost on queries shifted toward high-variance directions for a gain on queries shifted toward low-variance ones. A knob that flattens the update's singular values by degrees shows that this flattening drives the difference. The optimizer therefore shapes not only how fast in-context learning emerges but also which in-context algorithm is learned.
+In-context learning (ICL) lets a transformer learn a new task from examples in its prompt without changing its weights. Prior work explains ICL's emergence through data and architecture, but the role of the optimizer that trains the weights is largely unexplored. We train GPT-2-style transformers and a one-layer linear-attention model on in-context linear regression with separately tuned SGD, AdamW and Muon. Comparing the optimizers at the same in-distribution error, we measure how much of each input direction the model has learned and which in-context algorithm it runs. With SGD and Adam the model learns the input directions one at a time, like principal component regression (PCR); with Muon its predictor departs from PCR, becoming ridge-like in linear attention and cutting off the weak directions more softly in a GPT-2 of Garg et al.'s size. Shifting test queries toward input directions that were rare or common in training, we find that Muon helps on rare directions and hurts slightly on common ones, and a knob that flattens Muon's update spectrum by degrees shows that this flattening is why. The optimizer changes not only how fast ICL emerges, but also which in-context algorithm is learned.
 \end{abstract}
 
-\section{Introduction}
+\section{Introduction and background}
 \label{sec:intro}
-
-Transformers such as GPT-2 \citep{radford2019gpt2}, trained on prompts of input--output pairs $(x_i, w^\top x_i)$, learn to predict the output for a new input nearly as well as least squares, for linear functions $w$ never seen in training \citep{garg2022}. How they get there may depend on the optimizer, a factor prior work has rarely varied. Consider multi-head linear attention with separate rank-one key and query weights, trained by gradient flow from small initialization. It learns the input directions one at a time, from high to low variance, so a model stopped early approximately implements principal component regression (PCR) on a growing set of directions \citep{zhang2025training}. PCR uses the top $m$ directions fully and ignores the rest; ridge regression uses every direction, shrinking the weak ones more. Muon \citep{jordan2024muon} replaces each weight update by an approximation of its nearest orthogonal matrix, so that all of the update's singular directions move at nearly the same rate. Analyses of simplified Muon find that it grows all directions at the same rate \citep{vasudeva2025,dragutinovic2026}. If that carries over to full transformers, the optimizer would change not only how fast in-context learning emerges but also which in-context algorithm the model runs on the way.
-
-We test this on in-context linear regression with a strongly skewed input spectrum, training the same GPT-2 with SGD, AdamW and Muon. Muon trains about three times faster, so we compare optimizers at equal in-distribution error, not at equal steps. Our key questions and hypotheses are those of our project proposal, whose main experiment we moved from a 4-layer GPT-2 to Garg et al.'s model size:
-\begin{enumerate}\setlength{\itemsep}{1pt}
-\item Does the optimizer change which in-context algorithm the model runs, when SGD, AdamW and Muon are compared at the same in-distribution error?
-\item When does Muon generalize better than AdamW or SGD: when test prompts vary more along directions that had low variance during training, along directions that had high variance, or both?
-\item Is flattening the update's singular values, the defining step of Muon, what causes these differences?
-\end{enumerate}
-\begin{itemize}\setlength{\itemsep}{1pt}
-\item[\textbf{H1.}] SGD and AdamW will pass through PCR on a growing set of directions, Muon through a ridge-like estimator that uses every direction partially. All optimizers should end near least squares, as in \citet{garg2022}, but differences should appear along the way: at the same in-distribution error, Muon will have learned more of the low-variance directions.
-\item[\textbf{H2.}] Muon will show a smaller error increase than SGD and AdamW when queries emphasize previously low-variance directions, because it learns to use these directions more fully, but a larger one when queries emphasize previously high-variance directions.
-\item[\textbf{H3.}] Raising the singular values of Muon's update to a power $p$, from $p=1$ (the update's own spectrum) to $p=0$ (fully flat), will move the learned predictor from PCR toward ridge regression and strengthen both effects in H2.
-\end{itemize}
-\textbf{Contributions.} We compare SGD, AdamW and Muon at matched in-distribution error in Garg et al.'s GPT-2 (five seeds), a smaller GPT-2 and one-layer linear attention; read out the learned predictor with a per-direction probe, reference estimators and query shifts; and isolate spectral flattening with a knob from normalized momentum SGD to Muon. In short, Muon is faster and, at the same error, its in-context predictor is less PCR-like; flattening the update is what makes the difference.
-
-\section{Related work}
-\label{sec:related}
-\input{relwork}
+\input{background}
 
 \section{Methods}
 \label{sec:methods}
@@ -99,8 +81,8 @@ which is 1 for predicting zero. Models are trained on the squared error of every
   \node[font=\scriptsize, above=0.5mm of \t.north |- gpt.north] {\lab};
 }
 \node[box, below=3mm of a1.south west, anchor=north west] (train) {\textbf{Training and in-distribution test}\\ $w\sim\mathcal N(0,I)$; all $x\sim\mathcal N(0,\Lambda)$, $\lambda_j\propto 1/j^2$};
-\node[box, right=2mm of train] (probe) {\textbf{Probe (H1)}\\ $w=\sqrt d\,u_j$ (one direction);\\ all $x\sim\mathcal N(0,\Lambda)$};
-\node[box, right=2mm of probe] (shift) {\textbf{Query shift (H2)}\\ $w\sim\mathcal N(0,I)$; $x_i\sim\mathcal N(0,\Lambda)$;\\ $x_q\sim\mathcal N(0,\Lambda^{1-2t})$, same trace};
+\node[box, right=2mm of train] (probe) {\textbf{Probe}\\ $w=\sqrt d\,u_j$ (one direction);\\ all $x\sim\mathcal N(0,\Lambda)$};
+\node[box, right=2mm of probe] (shift) {\textbf{Query shift}\\ $w\sim\mathcal N(0,I)$; $x_i\sim\mathcal N(0,\Lambda)$;\\ $x_q\sim\mathcal N(0,\Lambda^{1-2t})$, same trace};
 \end{tikzpicture}
 \caption{\textbf{Input layout and the three kinds of prompts.} Each example $i$ becomes a query token $[x_i,0]$ (blue), where $y_i$ is predicted, and a context token $[x_i,y_i]$ (grey). The probe changes only the task, so the answer depends on direction $j$ alone; the query shift changes only the query's input distribution ($t>0$: toward low-variance directions, $t<0$: toward high-variance ones).}
 \label{fig:setup}
@@ -125,7 +107,7 @@ which is 1 for predicting zero. Models are trained on the squared error of every
 \end{algorithmic}
 \end{algorithm}
 
-\textbf{Spectral knob.} To test whether flattening the singular values is what matters (H3), we replace lines 3--6 of Algorithm~\ref{alg:muon} by an exact SVD that keeps a power of the singular values,
+\textbf{Spectral knob.} To test whether flattening the singular values is what matters, we replace lines 3--6 of Algorithm~\ref{alg:muon} by an exact SVD that keeps a power of the singular values,
 \begin{equation}
 M = U S V^\top \;\longmapsto\; \sqrt{\min(m,n)}\; \frac{U S^{p} V^\top}{\|U S^{p} V^\top\|_F} .
 \label{eq:knob}
@@ -136,16 +118,16 @@ At $p = 1$ this is momentum SGD with a normalized step per matrix, and at $p = 0
 \label{sec:measure}
 \textbf{Matched error.} Muon trains about three times faster, so we compare optimizers at equal in-distribution error (0.04, with 0.05 and 0.03 as checks), interpolating every measurement between evaluations.
 
-\textbf{Probe score (H1).} For each direction $j$ we give the model prompts whose task points along $u_j$ alone and score $f_j = 1 - \sum(\hat y - y)^2/\sum y^2$, averaged over predictions made with 16 to 40 examples. $f_j = 1$ means that direction $j$ has been learned. A predictor that ignores direction $j$, as PCR does, scores below zero, because it fits $y$ with the other directions; ridge regression never does. We report the mean $\bar f$ over directions 3--20 and the bounded score $\bar f_+$, the mean of $\max(f_j, 0)$.
+\textbf{Probe score.} For each direction $j$ we give the model prompts whose task points along $u_j$ alone and score $f_j = 1 - \sum(\hat y - y)^2/\sum y^2$, averaged over predictions made with 16 to 40 examples. $f_j = 1$ means that direction $j$ has been learned. A predictor that ignores direction $j$, as PCR does, scores below zero, because it fits $y$ with the other directions; ridge regression never does. We report the mean $\bar f$ over directions 3--20 and the bounded score $\bar f_+$, the mean of $\max(f_j, 0)$.
 
-\textbf{Which algorithm (H1).} We also compare the model's predictions with two families of reference estimators computed from the same context $(X, y)$,
+\textbf{Which algorithm.} We also compare the model's predictions with two families of reference estimators computed from the same context $(X, y)$,
 \begin{align}
 \text{ridge:}\quad \hat y &= x_q^\top (X^\top X + \alpha I)^{-1} X^\top y, \\
 \text{PCR}_m:\quad \hat y &= (U_m^\top x_q)^\top (Z^\top Z + s_m I)^{-1} Z^\top y, \qquad Z = X U_m,\; s_m = \textstyle\sum_{j>m}\lambda_j,
 \end{align}
 where $U_m$ holds the top $m$ directions, and report the distance to the nearest member of each family. In linear attention we fit a PCR step and a ridge curve directly to the gain profile and report the ratio of their residuals (above 1: closer to ridge).
 
-\textbf{Query shift (H2).} We keep the task and the context and draw only the query from $\mathcal{N}(0, \Lambda^{1-2t})$ at the same total variance: $t<0$ shifts it toward high-variance (``common'') directions and $t>0$ toward low-variance (``rare'') ones.
+\textbf{Query shift.} We keep the task and the context and draw only the query from $\mathcal{N}(0, \Lambda^{1-2t})$ at the same total variance: $t<0$ shifts it toward high-variance (``common'') directions and $t>0$ toward low-variance (``rare'') ones.
 
 \textbf{Controls and statistics.} Within a seed, every optimizer starts from the same initialization and sees the same training and evaluation prompts; only the optimizer and its learning rate change (Table~\ref{tab:hparams}, Appendix~\ref{app:lr}). Error bars are $\pm1$ standard deviation over five seeds at Garg scale, and min--max over three seeds in linear attention; comparisons are paired by seed.
 
@@ -163,7 +145,7 @@ Training and validation loss coincide (Figure~\ref{fig:loss}a), as every trainin
 \label{fig:loss}
 \end{figure}
 
-\subsection{H1: Muon's in-context predictor is less PCR-like}
+\subsection{Which in-context algorithm: Muon's predictor is less PCR-like}
 \label{sec:h1}
 
 Figure~\ref{fig:h1}a shows how well each model has learned each input direction at error 0.04. Every optimizer learns the strong directions first, and all have learned about the first eleven. Beyond that point AdamW behaves like PCR: on the directions it has not learned, its predictions are as poor as those of PCR, which ignores them. Muon's cutoff is softer, with predictions that degrade gradually over directions 12--15. Muon's probe score is higher than AdamW's in every seed (Table~\ref{tab:h1}, Figure~\ref{fig:h1}b), and its predictions are farther from the nearest PCR estimator in every seed and at every matched error. SGD lies between the two. The optimizers have learned similar amounts of the weak directions (bounded score, Table~\ref{tab:h1}); they differ in how the predictor treats the directions it has not learned. In linear attention the same split is sharper: SGD and Adam are PCR-like and Muon is ridge-like (Section~\ref{sec:h3}).
@@ -171,12 +153,12 @@ Figure~\ref{fig:h1}a shows how well each model has learned each input direction 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_h1.pdf}
-\caption{\textbf{H1 at Garg scale, error 0.04.} (a) Probe score per direction (1: learned; negative: ignored, as PCR does), mean over seeds 10--14 with $\pm1$ s.d.\ bands ($p=1$: thin line). Grey: PCR on the top 11 directions and ridge regression. (b) Muon's lead over each optimizer on the probe score $\bar f$ (filled) and the bounded score $\bar f_+$ (open), mean $\pm1$ s.d.; circles: seeds.}
+\caption{\textbf{Which algorithm, Garg scale, error 0.04.} (a) Probe score per direction (1: learned; negative: ignored, as PCR does), mean over seeds 10--14 with $\pm1$ s.d.\ bands ($p=1$: thin line). Grey: PCR on the top 11 directions and ridge regression. (b) Muon's lead over each optimizer on the probe score $\bar f$ (filled) and the bounded score $\bar f_+$ (open), mean $\pm1$ s.d.; circles: seeds.}
 \label{fig:h1}
 \end{figure}
 
 \begin{table}[t]
-\caption{\textbf{H1 at Garg scale, error 0.04.} Dirs.: directions with $f_j > 0.5$. $\bar f$, $\bar f_+$: probe and bounded score over directions 3--20, mean $\pm$ s.d.\ over seeds 10--14. Distances: mean squared distance to the nearest PCR and ridge estimator (least squares: 0.050). Last row: mean paired difference (seeds with a positive difference).}
+\caption{\textbf{Which algorithm, Garg scale, error 0.04.} Dirs.: directions with $f_j > 0.5$. $\bar f$, $\bar f_+$: probe and bounded score over directions 3--20, mean $\pm$ s.d.\ over seeds 10--14. Distances: mean squared distance to the nearest PCR and ridge estimator (least squares: 0.050). Last row: mean paired difference (seeds with a positive difference).}
 \label{tab:h1}
 \vspace{2pt}
 \centering\footnotesize
@@ -195,18 +177,18 @@ Muon $-$ AdamW & & $+0.062$ (5/5) & $+0.013$ (4/5) & $+0.008$ (5/5) & $+0.002$ (
 \end{tabular}
 \end{table}
 
-\subsection{H2: a trade-off out of distribution}
+\subsection{Out of distribution: a trade-off}
 
 Out of distribution, Muon trades a cost for a gain (Figure~\ref{fig:h2}). On queries shifted toward high-variance directions its error is $1.3$--$1.8\times$ AdamW's in every seed; on queries shifted toward low-variance directions it is lower. The cost falls on errors that are already tiny ($+0.004$ on an error of 0.007), while the gain falls where every model is weakest ($-0.03$ on 0.83). Without flattening, neither effect appears.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_h2.pdf}
-\caption{\textbf{H2 at Garg scale, error 0.04.} (a) Shifted-query error relative to AdamW's in the same seed (log scale, so equal factors look equal). (b) Error minus AdamW's. Mean over seeds 10--14, bars $\pm1$ s.d.; $t<0$: query shifted toward high-variance directions, $t>0$: toward low-variance ones.}
+\caption{\textbf{Query shifts, Garg scale, error 0.04.} (a) Shifted-query error relative to AdamW's in the same seed (log scale, so equal factors look equal). (b) Error minus AdamW's. Mean over seeds 10--14, bars $\pm1$ s.d.; $t<0$: query shifted toward high-variance directions, $t>0$: toward low-variance ones.}
 \label{fig:h2}
 \end{figure}
 
-\subsection{H3: spectral flattening drives the difference}
+\subsection{Why: spectral flattening drives the difference}
 \label{sec:h3}
 
 Linear attention lets us vary the flattening power $p$ finely (Figure~\ref{fig:linattn}). With little or no flattening ($p \ge 0.25$) the learned predictor is PCR-like, like SGD's: it has learned the two strongest directions and little else. With full or near-full flattening ($p \le 0.1$) it spreads its gain over the weak directions and becomes ridge-like, like Muon's. Flattening also brings the rare-ward gain out of distribution (Appendix~\ref{app:small}). At Garg scale, Muon without flattening ($p=1$) behaves like AdamW on every measure and loses most of its speed-up, while exact orthogonalization ($p=0$) behaves like Muon.
