@@ -136,7 +136,7 @@ At $p = 1$ this is momentum SGD with a normalized step per matrix, and at $p = 0
 
 \subsection{Measurements}
 \label{sec:measure}
-\textbf{Matched error.} Muon needs about three times fewer training steps, so we compare optimizers at equal in-distribution error (0.04, with 0.05 and 0.03 as checks), interpolating every measurement between evaluations. This shows how each optimizer spreads its remaining error across input directions.
+\textbf{Matched error.} Muon needs about three times fewer training steps, so we compare optimizers at equal in-distribution error (0.04), interpolating every measurement between evaluations. We repeated every comparison at errors 0.05 and 0.03 to make sure the choice of 0.04 is not arbitrary; the results are the same. This shows how each optimizer spreads its remaining error across input directions.
 
 \textbf{Probe score.} For each direction $j$ we give the model prompts whose task points along $u_j$ alone and score $f_j = 1 - \sum(\hat y - y)^2/\sum y^2$, averaged over predictions made with 16 to 40 examples. $f_j = 1$ means that direction $j$ has been learned and $f_j = 0$ that the model predicts zero. A predictor that ignores direction $j$, as PCR does, scores below zero, because it tries to explain $y$ with the other directions; ridge regression never does. We report the mean $\bar f$ over directions 3--20, and the bounded score $\bar f_+$, the mean of $\max(f_j, 0)$, which measures only how much has been learned.
 
@@ -452,7 +452,7 @@ Muon, $p=1$ & lr $5\cdot10^{-4}$ & Muon's rate stalled; best of four rates (belo
 Linear attention & 1 layer, 8 rank-one heads, batch 1,024, 6,000 steps, 3 seeds; lr 0.02 (SGD, Muon, every $p$), 0.03 (Adam) & Setup of \citet{zhang2025training}, where the PCR path is known exactly; losses are exact, so three seeds suffice \\
 \midrule
 \multicolumn{3}{@{}l}{\emph{Measurements}} \\
-Matched error & 0.04 (0.05, 0.03 as checks) & Muon needs about $3\times$ fewer steps, so equal steps would compare different stages; 0.04 is the lowest error every optimizer reaches \\
+Matched error & 0.04 (results verified at 0.05 and 0.03) & Muon needs about $3\times$ fewer steps, so equal steps would compare different stages; 0.04 is the lowest error every optimizer reaches \\
 Probe & 64 prompts per direction, predictions with 16--40 examples, directions 3--20 & Enough examples for weak directions to be learnable; every optimizer has learned directions 1--2 early \\
 References & PCR on the top $m$ directions (with a small ridge penalty); ridge & The two natural estimators when directions differ in variance \\
 Query shift & $x_q \sim \mathcal N(0,\Lambda^{1-2t})$, $t \in [-1, 1]$, 256 prompts & Moves the query toward common or rare directions at fixed total variance \\
