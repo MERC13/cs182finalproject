@@ -112,7 +112,7 @@ which is 1 for predicting zero. Models are trained on the squared error of every
 M = U S V^\top \;\longmapsto\; \sqrt{\min(m,n)}\; \frac{U S^{p} V^\top}{\|U S^{p} V^\top\|_F} .
 \label{eq:knob}
 \end{equation}
-At $p = 1$ this is momentum SGD with a normalized step per matrix, and at $p = 0$ it is exact orthogonalization. In between it is steepest descent under the Schatten norm with exponent $1+1/p$ \citep{dong2026muonp}, where the Schatten-$q$ norm is the $\ell_q$ norm of the singular values ($q=2$: Frobenius norm, $q=\infty$: spectral norm). We run $p \in \{1, 0.75, 0.5, 0.25, 0.1, 0\}$ in linear attention and $p \in \{1, 0\}$ at Garg scale \inprog{$p = 0.25$ at Garg scale}.
+At $p = 1$ this is momentum SGD with a normalized step per matrix, and at $p = 0$ it is exact orthogonalization. In between it is steepest descent under the Schatten norm with exponent $1+1/p$ \citep{dong2026muonp}, where the Schatten-$q$ norm is the $\ell_q$ norm of the singular values ($q=2$: Frobenius norm, $q=\infty$: spectral norm). We run $p \in \{1, 0.75, 0.5, 0.25, 0.1, 0\}$ in linear attention and $p \in \{1, 0\}$ at Garg scale.
 
 \subsection{Measurements}
 \label{sec:measure}
@@ -206,7 +206,7 @@ Linear attention lets us vary the flattening power $p$ finely (Figure~\ref{fig:l
 
 The optimizer changes not only how fast in-context learning emerges but which in-context algorithm the model runs on the way. Gradient-based optimizers follow the variance-ordered, PCR-like path that theory predicts for linear attention. Muon's spectral flattening lets the predictor move away from PCR: to a ridge-like predictor in linear attention, and to a softer cutoff in full transformers. Out of distribution this is a trade-off rather than a free gain, better on queries that emphasize rare directions and slightly worse on those that emphasize common ones. At equal steps Muon is simply further along. Larger batches, longer training and other input spectra are natural next tests.
 
-\textbf{Status.} \inprog{$p = 0.25$ at Garg scale; more seeds for exact orthogonalization and the small-GPT-2 knob}. All results are early in training (about 4,000 steps) on one task and one input spectrum.
+\textbf{Status.} \inprog{more seeds for exact orthogonalization and the small-GPT-2 knob}. All results are early in training (about 4,000 steps) on one task and one input spectrum.
 
 \renewcommand{\bibfont}{\footnotesize}
 \setlength{\bibsep}{1pt}
