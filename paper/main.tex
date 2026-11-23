@@ -141,7 +141,7 @@ Training and validation loss coincide (Figure~\ref{fig:loss}a), as every trainin
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_loss.pdf}
-\caption{\textbf{Training and validation loss at Garg scale.} (a) Squared error$/d$ over all 41 positions: validation (solid, 1,000 held-out prompts, with bands) and training (dotted, mean since the previous evaluation, no band). (b) Held-out error after 40 examples (Eq.~\ref{eq:err}), used for matching. Mean over seeds 10--14, bands $\pm 1$ s.d.; log scales, as the curves span over an order of magnitude; Muon to step 2,000, where all five seeds exist.}
+\caption{\textbf{Training and validation loss at Garg scale.} (a) Loss over all prompt positions; validation solid, training dotted. (b) Held-out error after 40 examples, the quantity we match on; dotted lines mark the matched errors 0.05, 0.04 and 0.03. Lines: mean over five seeds; bands: $\pm1$ standard deviation over seeds. Log scales, because the curves span two orders of magnitude.}
 \label{fig:loss}
 \end{figure}
 
@@ -153,7 +153,7 @@ Figure~\ref{fig:h1}a shows how well each model has learned each input direction 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_h1.pdf}
-\caption{\textbf{Which algorithm, Garg scale, error 0.04.} (a) Probe score per direction (1: learned; negative: ignored, as PCR does), mean over seeds 10--14 with $\pm1$ s.d.\ bands ($p=1$: thin line). Grey: PCR on the top 11 directions and ridge regression. (b) Muon's lead over each optimizer on the probe score $\bar f$ (filled) and the bounded score $\bar f_+$ (open), mean $\pm1$ s.d.; circles: seeds.}
+\caption{\textbf{What each optimizer has learned (Garg scale, error 0.04).} (a) Probe score per input direction: 1 means learned, below 0 means ignored, as PCR does. Black: PCR on the top 11 directions (dashed) and ridge regression (dotted). Mean over five seeds; bands: $\pm1$ standard deviation (AdamW and Muon). (b) Muon's lead over each optimizer, averaged over directions 3--20; bars: mean, whiskers: $\pm1$ standard deviation, dots: individual seeds.}
 \label{fig:h1}
 \end{figure}
 
@@ -184,7 +184,7 @@ Out of distribution, Muon trades a cost for a gain (Figure~\ref{fig:h2}). On que
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_h2.pdf}
-\caption{\textbf{Query shifts, Garg scale, error 0.04.} (a) Shifted-query error relative to AdamW's in the same seed (log scale, so equal factors look equal). (b) Error minus AdamW's. Mean over seeds 10--14, bars $\pm1$ s.d.; $t<0$: query shifted toward high-variance directions, $t>0$: toward low-variance ones.}
+\caption{\textbf{Out of distribution (Garg scale, error 0.04).} Test queries shifted toward the directions that were common ($t<0$) or rare ($t>0$) in training. (a) Error relative to AdamW in the same seed, on a log scale so that equal factors look equal. (b) The same comparison as an absolute difference. Mean over five seeds; bars: $\pm1$ standard deviation.}
 \label{fig:h2}
 \end{figure}
 
@@ -196,7 +196,7 @@ Linear attention lets us vary the flattening power $p$ finely (Figure~\ref{fig:l
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_linattn.pdf}
-\caption{\textbf{Linear attention, $\lambda_j \propto 1/j^2$, $d=8$.} (a) Fraction of the optimal gain learned per direction at excess loss 0.1; median over 3 seeds, bands min--max. (b) Fit of that profile to PCR versus ridge (PCR residual over ridge residual, averaged over excess losses 0.5 to 0.1; above 1: closer to ridge) for each flattening power $p$; median, bars and bands min--max; horizontal lines: SGD, Adam and Muon. Log scale, so being $k$ times closer to PCR or to ridge is the same distance from 1.}
+\caption{\textbf{Linear attention.} (a) Fraction of the optimal gain learned per input direction at excess loss 0.1. (b) How PCR-like or ridge-like the learned gains are (PCR fit residual over ridge fit residual, log scale; above 1: ridge-like) as Muon's update is flattened from $p=1$ (none) to $p=0$ (full); dashed lines: SGD, Adam and standard Muon. Median over three seeds; bands and bars: min--max.}
 \label{fig:linattn}
 \end{figure}
 
