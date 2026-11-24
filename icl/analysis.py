@@ -1,126 +1,110 @@
-"""Load run logs and compute the pilot's summary metrics."""
-from __future__ import annotations
-
-import glob
+"""Reading the logs: values at a matched error, probe scores, shifted-query errors, linear-attention profiles."""
 import json
-from dataclasses import dataclass
+from functools import cache
 
 import numpy as np
 
-OPT_ORDER = ["sgd", "adamw", "muon"]
-OPT_LABEL = {"sgd": "SGD+mom", "adamw": "AdamW", "muon": "Muon"}
-# categorical slots 1-3 of the validated reference palette (all-pairs safe)
-OPT_COLOR = {"sgd": "#2a78d6", "adamw": "#eb6834", "muon": "#1baf7a"}
-COND_ORDER = ["iso", "1/i-ali", "1/i-rot", "1/i2-ali", "1/i2-rot"]
-COND_LABEL = {"iso": "isotropic", "1/i-ali": "λ∝1/i, aligned", "1/i-rot": "λ∝1/i, rotated",
-              "1/i2-ali": "λ∝1/i², aligned", "1/i2-rot": "λ∝1/i², rotated"}
+from .data import eval_prompts, spectrum
+from .train import D, EVAL_SEED, N, SHIFTS
+
+SEEDS = (10, 11, 12, 13, 14)
+ARMS = {"SGD": "sgd_s{}", "AdamW": "adamw_s{}", "Muon": "muon_s{}", "Muon, p = 1": "muon_pow1_lr0.0005_s{}"}
 
 
-@dataclass
 class Run:
-    path: str
-    cfg: dict
-    status: str
-    lam: np.ndarray
-    steps: np.ndarray
-    err_k: np.ndarray  # (S, n) normalised test error per prefix
-    probe: np.ndarray | None  # (S, d, n)
-    dist: dict | None  # name -> (S,) distance averaged over k = 1..32
-    dist8: dict | None
-    q_steps: np.ndarray
-    qshift: np.ndarray  # (Sq, T)
-    iw_gain: np.ndarray  # (Sq, d) implied-weight gain per principal axis (1 = least squares)
-    iw_err: np.ndarray
-    iw_r2: np.ndarray
-    ref_err: dict  # estimator name -> (n,)
-    final_val: float | None
-    wall: float | None
+    """One GPT-2 log. Every array's first axis is aligned with `steps`."""
 
-    @property
-    def opt(self):
-        return self.cfg["opt"]
+    def __init__(self, path):
+        with open(path) as f:
+            log = json.load(f)
+        ev = log["evals"]
+        self.steps = np.array([e["step"] for e in ev])
+        self.err_k = np.array([e["test_err_k"] for e in ev])  # error after k examples, k = 0..40
+        self.err = self.err_k[:, -1]  # after all 40 examples: the matched quantity
+        self.train_loss = np.array([np.nan if e["train_loss"] is None else e["train_loss"] for e in ev])
+        self.probe = 1 - np.array([e["probe_err_k"] for e in ev])[:, :, 16:].mean(2)  # f_j, predictions with 16-40
+        self.dist = {k: np.array([e["dist_8_32"][k] for e in ev]) for k in ev[0]["dist_8_32"]}
+        self.shift = [np.array(e["qshift_err"]) * shift_scale() for e in ev if "qshift_err" in e]
 
-    @property
-    def cond(self):
-        return self.cfg["cond"]
+    def first_step(self, level):
+        i = np.nonzero(self.err <= level)[0]
+        return int(self.steps[i[0]]) if len(i) else None
 
-    @property
-    def lr(self):
-        return self.cfg["lr"]
-
-    @property
-    def err_mean(self):  # mean over k = 1..32
-        return self.err_k[:, 1:].mean(1)
-
-    @property
-    def err_last(self):  # 32 in-context examples
-        return self.err_k[:, -1]
-
-    def excess_mean(self):
-        return self.err_mean - self.ref_err["ols"][1:].mean()
-
-    def first_below(self, series, thr):
-        idx = np.nonzero(series < thr)[0]
-        return float(self.steps[idx[0]]) if len(idx) else np.nan
-
-    def read_at(self, values, lv, interp=True):
-        """A per-evaluation quantity (first axis aligned with self.steps) read at matched error lv.
-        interp=True: at exactly lv, interpolating linearly in log error between the last evaluation above lv and the
-        first at or below it (the paper's H1 reads). interp=False: at the first evaluation at or below lv.
-        None if the run never reaches lv."""
-        e = self.err_last
-        idx = np.nonzero(e <= lv)[0]
-        if not len(idx):
+    def at(self, values, level):
+        """`values` at error `level`, interpolated linearly in log error; None if the run never gets there."""
+        e, v = self.err, np.asarray(values)
+        i = np.nonzero(e <= level)[0]
+        if not len(i):
             return None
-        i = int(idx[0])
-        v = np.asarray(values)
-        if not interp or i == 0:
-            return v[i]
-        w = (np.log(e[i - 1]) - np.log(lv)) / (np.log(e[i - 1]) - np.log(e[i]))
+        i = int(i[0])
+        if i == 0:
+            return v[0]
+        w = (np.log(e[i - 1]) - np.log(level)) / (np.log(e[i - 1]) - np.log(e[i]))
         return v[i - 1] + w * (v[i] - v[i - 1])
 
-    def probe_err(self):
-        """(S, d) probe relative error per principal axis, averaged over k = 16..32."""
-        return self.probe[:, :, 16:].mean(2)
-
-    def axis_learn_steps(self, thr=0.5):
-        """Step at which each principal axis' probe error first drops below thr."""
-        P = self.probe_err()
-        return np.array([self.first_below(P[:, j], thr) for j in range(P.shape[1])])
-
-
-def load(path) -> Run:
-    L = json.load(open(path))
-    E = L["evals"]
-    steps = np.array([e["step"] for e in E])
-    err_k = np.array([e["test_err_k"] for e in E])
-    has_full = "probe_err_k" in E[-1]
-    probe = np.array([e["probe_err_k"] for e in E]) if has_full else None
-    dist = {k: np.array([e["dist_1_32"][k] for e in E]) for k in E[-1]["dist_1_32"]} if has_full else None
-    dist8 = {k: np.array([e["dist_8_32"][k] for e in E]) for k in E[-1]["dist_8_32"]} if has_full else None
-    qe = [e for e in E if "qshift_err" in e]
-    ref_err = dict(zip(L["ref_names"], np.array(L["ref_err_k"])))
-    ie = [e for e in qe if "iw_gain" in e]
-    return Run(path, L["config"], L["status"], np.array(L["cond"]["lam"]), steps, err_k, probe, dist, dist8,
-               np.array([e["step"] for e in qe]), np.array([e["qshift_err"] for e in qe]),
-               np.array([e["iw_gain"] for e in ie]), np.array([e["iw_err"] for e in ie]),
-               np.array([e["iw_r2"] for e in ie]), ref_err, L.get("final_val_loss"), L.get("wall"))
+    def shift_at(self, level):
+        """Error per query shift t (SHIFTS order) where the unshifted error on the same prompts crosses `level`,
+        interpolated in log error."""
+        i0 = SHIFTS.index(0.0)
+        for a, b in zip(self.shift[:-1], self.shift[1:]):
+            if a[i0] > level >= b[i0]:
+                w = (np.log(a[i0]) - np.log(level)) / (np.log(a[i0]) - np.log(b[i0]))
+                return np.exp(np.log(a) + w * (np.log(b) - np.log(a)))
+        return None
 
 
-def load_all(pattern) -> list[Run]:
+@cache
+def shift_scale():
+    """The logs hold sum (yhat - y)^2 / sum y^2 on the shifted queries; this factor converts it to the paper's
+    error (1/d) mean (yhat - y)^2."""
+    y = eval_prompts(spectrum(D), N, EVAL_SEED, SHIFTS)["shift"]["y"][..., -1].double()
+    return ((y ** 2).sum(1) / (y.shape[1] * D)).numpy()
+
+
+@cache
+def run(name, seed=None):
+    """A main run by arm and seed, run("Muon", 10), or any log by its path in runs/, run("garg_lr/sgd_lr0.03_s10")."""
+    path = f"garg_scale/{ARMS[name].format(seed)}" if seed is not None else name
+    return Run(f"runs/{path}.json")
+
+
+def nearest(dist, family):
+    return min(v for k, v in dist.items() if k.startswith(family))
+
+
+# --- linear attention ---------------------------------------------------------------------------------------------
+
+def linattn(path="runs/linattn.json"):
+    """Per run: excess loss over the optimum, (L - L*) / (1 - L*); the fraction of the optimal gain on each
+    direction; and the loss with queries shifted toward rare directions."""
+    with open(path) as f:
+        data = json.load(f)
+    lam, n = np.array(data["lam"]), data["n"]
+    rho_star = lam * n / ((n + 1) * lam + lam.sum())
+    L_star = 1 - np.sum(rho_star * lam) / len(lam)
     out = []
-    for p in sorted(glob.glob(pattern)):
-        try:
-            out.append(load(p))
-        except Exception as e:  # partial file
-            print("skip", p, e)
-    return out
+    for r in data["runs"]:
+        loss = np.array(r["loss"])
+        out.append(dict(arm=r["arm"], lr=r["lr"], seed=r["seed"], excess=(loss - L_star) / (1 - L_star),
+                        gain=np.array(r["gain"]) / rho_star, qloss=np.array(r["qloss"])))
+    return lam, out
 
 
-def best_fit(run: Run, prefix: str, which: str = "dist"):
-    """Per eval step: (best estimator suffix, its distance) within a family (ridge_/pcr_/gdpre_)."""
-    D = getattr(run, which)
-    names = [k for k in D if k.startswith(prefix)]
-    M = np.stack([D[k] for k in names])  # (F, S)
-    i = M.argmin(0)
-    return [names[j].split("_", 1)[1] for j in i], M.min(0)
+def at_excess(r, values, level):
+    """`values` where the run's excess loss first reaches `level`, interpolated linearly."""
+    exc, v = r["excess"], np.asarray(values)
+    i = int(np.nonzero(exc <= level)[0][0])
+    if i == 0:
+        return v[0]
+    w = (exc[i - 1] - level) / (exc[i - 1] - exc[i])
+    return v[i - 1] + w * (v[i] - v[i - 1])
+
+
+def pcr_ridge_ratio(r, lam, levels=np.logspace(np.log10(0.5), np.log10(0.1), 8)):
+    """How much better a ridge curve lam / (lam + a) fits the gain profile than a PCR step 1[j <= m]: the ratio of
+    their least-squares residuals, averaged over excess losses 0.5 to 0.1 (above 1: ridge-like)."""
+    shapes = lam / (lam + np.logspace(-3, 2, 200)[:, None])
+    res = np.array([[min(np.sum((g - (np.arange(len(lam)) < m)) ** 2) for m in range(len(lam) + 1)),
+                     np.min(np.sum((g - shapes) ** 2, 1))]
+                    for g in (np.clip(at_excess(r, r["gain"], lv), 0, 1.2) for lv in levels)])
+    return res[:, 0].mean() / res[:, 1].mean()

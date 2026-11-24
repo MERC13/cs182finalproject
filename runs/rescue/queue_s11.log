@@ -1,8 +1,0 @@
-3 jobs, 3 to run
-[      0s] start runs/rescue/sgd_1i2-ali_s11.json
-[      3s] start runs/rescue/adamw_1i2-ali_s11.json
-[      6s] start runs/rescue/muon_1i2-ali_s11.json
-[    924s] end   runs/rescue/muon_1i2-ali_s11.json: done val=0.092443 wall=910.7
-[   1509s] end   runs/rescue/adamw_1i2-ali_s11.json: done val=0.1002 wall=1498.7
-[   1549s] end   runs/rescue/sgd_1i2-ali_s11.json: done val=0.10508 wall=1543.8
-all done

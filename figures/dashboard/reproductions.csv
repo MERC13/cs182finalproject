@@ -1,8 +1,0 @@
-id,paper,claim,result,verdict
-zhang,Zhang et al. 2025,"Linear attention with separate key and query weights learns principal axes one at a time, on predicted loss plateaus",All 16 predicted plateaus matched to 5-6 decimals; axes switch on in eigenvalue order,"Yes, exactly"
-vonoswald,von Oswald et al. 2023,A trained linear self-attention layer implements one preconditioned gradient-descent step,The converged weights equal the analytic one-step solution to about 1e-14,"Yes, exactly"
-ma,Ma et al. 2026,Simplified Muon converges at a rate independent of the condition number; gradient descent does not,"Gradient descent slows with the condition number; Muon does not, aligned or rotated",Yes
-deeplinear,Saxe et al. / Dragutinović et al. 2026,In a deep linear network gradient descent learns modes one at a time; spectral descent learns them together,"Gradient descent sequential, spectral descent parallel, both unchanged by rotation",Yes
-garg,Garg et al. 2022,A GPT-2 matches least squares in context and fails on a skewed test covariance,Matches least squares in distribution; the skewed-covariance failure appears for an AdamW-trained model,Yes
-xie,Xie et al. 2025,Rotating the whole parameter space slows Adam sharply,AdamW in a rotated parameter space never leaves the plateau in our GPT-2,"Yes, strongly"
-gargcur,"Garg et al. 2022, training recipe",Their curriculum speeds up training,Faster early training; the size of the skewed-covariance failure depends on training details,"Yes, with a nuance"

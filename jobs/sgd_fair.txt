@@ -1,3 +1,0 @@
---opt sgd --lr 0.1 --clip 1.0 --cond iso --d 2 --n_points 11 --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/sgd_lr0.1_clip1_d2_s0.json
---opt adamw --lr 3e-4 --cond iso --d 2 --n_points 11 --steps 4000 --y_mode sep --readin_init gauss --light_eval --eval_every 100 --qshift_every 100000 --out runs/search/adamw_lr3e-4_d2_s0.json
---opt sgd --lr 0.1 --clip 1.0 --cond iso --y_mode garg --curriculum garg --cur_interval 1000 --steps 20000 --light_eval --eval_every 200 --qshift_every 100000 --save_model --ckpt_every 5000 --out runs/repro/garg_sgd0.1_clip1_cur_s0.json

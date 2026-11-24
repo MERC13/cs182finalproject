@@ -1,30 +1,16 @@
-"""Reference in-context estimators, evaluated at every prefix length.
+"""Reference in-context estimators, evaluated on the same prompts as the model.
 
-All functions take context X (P, k, d), Y (P, k), query xq (P, d) and return
-predictions (P,).  `prefix_preds` evaluates one at every prefix k = 0..n-1
-(k = 0 -> predict 0, the prior mean).
-
-  ols        min-norm least squares (pinv). Noiseless + w ~ N(0, I): this is
-             the Bayes posterior mean for every k, and exact once k >= d.
-  ridge(l)   (X^T X + l I)^{-1} X^T y.  l -> 0 recovers ols.
-  pcr(m)     the best predictor that only sees the top-m POPULATION principal
-             axes U_m: ridge in that subspace with penalty s2 = sum_{j>m} lam_j
-             (the omitted directions act as noise of that variance).  Plain
-             least squares in the subspace explodes near k = m, so we use this
-             Bayes version; m = d recovers ols.
-  gd_pre(m)  one step of preconditioned GD from w = 0 restricted to the top-m
-             axes, w = sum_{i<=m} c_i u_i u_i^T (1/k) X^T y, with the finite-k
-             optimal c_i = k / ((k+1) lam_i + tr Sigma)  (from
-             E[S A S] = (k+1)/k Sigma A Sigma + tr(A Sigma) Sigma / k for the
-             empirical covariance S).  This is what a linear-attention layer
-             that has learned m principal axes can compute (Zhang et al. 2025).
-  gd1        plain one-step GD with the step size that is optimal on average
-             (von Oswald et al. 2023 style), fitted per k.
+Each estimator maps a context X (P, k, d), Y (P, k) and query xq (P, d) to predictions (P,).
+  ridge(a)    (X^T X + a I)^-1 X^T y
+  pcr(m)      ridge on the top m input directions, with penalty sum_{j>m} lambda_j: the omitted directions act as
+              noise of that variance (plain least squares on m directions blows up when k is close to m)
+  gd_pre(m)   one step of gradient descent preconditioned by the best one-layer linear attention on m directions
+              (Zhang et al., 2025)
+  gd1         one plain gradient step with the best step size for each k
 """
-from __future__ import annotations
-
-import numpy as np
 import torch
+
+RIDGE = [1e-3, 3e-3, 1e-2, 3e-2, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0, 100.0]
 
 
 def ols(X, Y, xq):
@@ -32,88 +18,59 @@ def ols(X, Y, xq):
     return (w.squeeze(-1) * xq).sum(-1)
 
 
-def ridge(lam):
+def ridge(a):
     def f(X, Y, xq):
-        d = X.shape[-1]
-        G = X.mT @ X + lam * torch.eye(d, dtype=X.dtype)
+        G = X.mT @ X + a * torch.eye(X.shape[-1], dtype=X.dtype)
         w = torch.linalg.solve(G, X.mT @ Y.unsqueeze(-1))
         return (w.squeeze(-1) * xq).sum(-1)
     return f
 
 
-def pcr(U_m, s2):
+def pcr(lam, m):
+    if m == len(lam):
+        return ols
+
     def f(X, Y, xq):
-        Z = X @ U_m
-        m = Z.shape[-1]
-        if s2 <= 0:
-            wz = torch.linalg.pinv(Z) @ Y.unsqueeze(-1)
-        else:
-            wz = torch.linalg.solve(Z.mT @ Z + s2 * torch.eye(m, dtype=Z.dtype), Z.mT @ Y.unsqueeze(-1))
-        return ((xq @ U_m) * wz.squeeze(-1)).sum(-1)
+        Z = X[..., :m]
+        w = torch.linalg.solve(Z.mT @ Z + float(lam[m:].sum()) * torch.eye(m, dtype=Z.dtype), Z.mT @ Y.unsqueeze(-1))
+        return (xq[..., :m] * w.squeeze(-1)).sum(-1)
     return f
 
 
-def gd_pre(U_m, lam_m, trace):
+def gd_pre(lam, m):
     def f(X, Y, xq):
         k = X.shape[1]
-        c = k / ((k + 1) * lam_m + trace)
-        P = U_m @ torch.diag(c) @ U_m.mT
+        c = torch.zeros_like(lam)
+        c[:m] = k / ((k + 1) * lam[:m] + lam.sum())
         g = (X.mT @ Y.unsqueeze(-1)).squeeze(-1) / k
-        return ((g @ P) * xq).sum(-1)
+        return (g * c * xq).sum(-1)
     return f
 
 
-def prefix_preds(X, Y, f):
-    P, n, d = X.shape
-    out = torch.zeros(P, n, dtype=torch.float64)
-    for k in range(1, n):
+def at_every_k(X, Y, f):
+    """Predictions (P, n) for y_k from the first k examples, k = 0 .. n-1 (k = 0: predict 0)."""
+    out = torch.zeros(X.shape[:2], dtype=torch.float64)
+    for k in range(1, X.shape[1]):
         out[:, k] = f(X[:, :k], Y[:, :k], X[:, k])
     return out
 
 
-RIDGE_GRID = [1e-3, 3e-3, 1e-2, 3e-2, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0, 100.0]
+def gd1(X, Y):
+    out = torch.zeros(X.shape[:2], dtype=torch.float64)
+    for k in range(1, X.shape[1]):
+        base = ((X[:, :k].mT @ Y[:, :k].unsqueeze(-1)).squeeze(-1) / k * X[:, k]).sum(-1)
+        out[:, k] = (base * Y[:, k]).sum() / (base * base).sum() * base
+    return out
 
 
-class Reference:
-    """Precomputed estimator predictions on a fixed prompt set."""
-
-    def __init__(self, X, Y, lam: np.ndarray, U: np.ndarray):
-        X, Y = X.double(), Y.double()
-        d = X.shape[-1]
-        U = torch.tensor(U, dtype=torch.float64)
-        lam_t = torch.tensor(lam, dtype=torch.float64)
-        self.names, preds = [], []
-
-        def add(name, f):
-            self.names.append(name)
-            preds.append(prefix_preds(X, Y, f))
-
-        add("ols", ols)
-        for l in RIDGE_GRID:
-            add(f"ridge_{l:g}", ridge(l))
-        for m in range(1, d + 1):
-            add(f"pcr_{m}", pcr(U[:, :m], float(lam_t[m:].sum())))
-        for m in range(1, d + 1):
-            add(f"gdpre_{m}", gd_pre(U[:, :m], lam_t[:m], float(lam_t.sum())))
-        # one-step plain GD with the per-k optimal step (fit by least squares)
-        g1 = []
-        for k in range(1, X.shape[1]):
-            g = (X[:, :k].mT @ Y[:, :k].unsqueeze(-1)).squeeze(-1) / k
-            base = (g * X[:, k]).sum(-1)
-            eta = (base * Y[:, k]).sum() / (base * base).sum()
-            g1.append(eta * base)
-        gd1 = torch.zeros_like(Y)
-        gd1[:, 1:] = torch.stack(g1, 1)
-        self.names.append("gd1")
-        preds.append(gd1)
-        self.preds = torch.stack(preds).float()  # (E, P, n)
-        self.y = Y.float()
-        self.d = d
-
-    def distances(self, model_pred):
-        """Normalised squared distance (/d) to each estimator, per prefix: (E, n)."""
-        return ((self.preds - model_pred.unsqueeze(0)) ** 2).mean(1) / self.d
-
-    def errors(self):
-        """Each estimator's own normalised error vs. the truth, per prefix: (E, n)."""
-        return ((self.preds - self.y.unsqueeze(0)) ** 2).mean(1) / self.d
+def references(X, Y, lam):
+    """All reference predictions (name -> (P, n)) on the prompts X, Y."""
+    X, Y = X.double(), Y.double()
+    lam = torch.tensor(lam, dtype=torch.float64)
+    d = X.shape[-1]
+    refs = {"ols": at_every_k(X, Y, ols)}
+    refs.update({f"ridge_{a:g}": at_every_k(X, Y, ridge(a)) for a in RIDGE})
+    refs.update({f"pcr_{m}": at_every_k(X, Y, pcr(lam, m)) for m in range(1, d + 1)})
+    refs.update({f"gdpre_{m}": at_every_k(X, Y, gd_pre(lam, m)) for m in range(1, d + 1)})
+    refs["gd1"] = gd1(X, Y)
+    return refs

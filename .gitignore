@@ -1,14 +1,7 @@
-# model checkpoints (regenerate from jobs/*.txt)
-*.ckpt
-*.ckpt.tmp
-*.json.tmp
 __pycache__/
-*.pyc
-paper/*.aux
-paper/*.log
-paper/*.out
-paper/*.blg
-paper/*.fls
-paper/*.fdb_latexmk
-paper/*.synctex.gz
-paper/*.bbl
+*.ckpt
+paper/*
+!paper/main.tex
+!paper/main.pdf
+!paper/nips15submit_e.sty
+!paper/figures/

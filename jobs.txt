@@ -1,0 +1,34 @@
+# Every GPT-2 run in the paper, one per line:  grep -v '^#' jobs.txt | xargs -P 4 -L 1 python -m icl.train
+# Main runs (runs/garg_scale)
+--opt sgd --lr 0.1 --clip 1 --steps 4000 --seed 10 --out runs/garg_scale/sgd_s10.json
+--opt adamw --lr 3e-4 --steps 4000 --seed 10 --out runs/garg_scale/adamw_s10.json
+--opt muon --lr 0.007 --steps 3000 --seed 10 --out runs/garg_scale/muon_s10.json
+--opt muon --lr 5e-4 --power 1 --steps 4000 --seed 10 --out runs/garg_scale/muon_pow1_lr0.0005_s10.json
+--opt sgd --lr 0.1 --clip 1 --steps 4000 --seed 11 --out runs/garg_scale/sgd_s11.json
+--opt adamw --lr 3e-4 --steps 4000 --seed 11 --out runs/garg_scale/adamw_s11.json
+--opt muon --lr 0.007 --steps 2000 --seed 11 --out runs/garg_scale/muon_s11.json
+--opt muon --lr 5e-4 --power 1 --steps 4000 --seed 11 --out runs/garg_scale/muon_pow1_lr0.0005_s11.json
+--opt sgd --lr 0.1 --clip 1 --steps 4000 --seed 12 --out runs/garg_scale/sgd_s12.json
+--opt adamw --lr 3e-4 --steps 4000 --seed 12 --out runs/garg_scale/adamw_s12.json
+--opt muon --lr 0.007 --steps 2000 --seed 12 --out runs/garg_scale/muon_s12.json
+--opt muon --lr 5e-4 --power 1 --steps 4000 --seed 12 --out runs/garg_scale/muon_pow1_lr0.0005_s12.json
+--opt sgd --lr 0.1 --clip 1 --steps 4000 --seed 13 --out runs/garg_scale/sgd_s13.json
+--opt adamw --lr 3e-4 --steps 4000 --seed 13 --out runs/garg_scale/adamw_s13.json
+--opt muon --lr 0.007 --steps 2000 --seed 13 --out runs/garg_scale/muon_s13.json
+--opt muon --lr 5e-4 --power 1 --steps 4000 --seed 13 --out runs/garg_scale/muon_pow1_lr0.0005_s13.json
+--opt sgd --lr 0.1 --clip 1 --steps 4000 --seed 14 --out runs/garg_scale/sgd_s14.json
+--opt adamw --lr 3e-4 --steps 4000 --seed 14 --out runs/garg_scale/adamw_s14.json
+--opt muon --lr 0.007 --steps 2000 --seed 14 --out runs/garg_scale/muon_s14.json
+--opt muon --lr 5e-4 --power 1 --steps 4000 --seed 14 --out runs/garg_scale/muon_pow1_lr0.0005_s14.json
+--opt muon --lr 0.007 --power 0 --steps 3000 --seed 10 --out runs/garg_scale/muon_exact_s10.json
+# Learning-rate check (runs/garg_lr)
+--opt sgd --lr 0.03 --clip 1 --steps 1500 --seed 10 --out runs/garg_lr/sgd_lr0.03_s10.json
+--opt sgd --lr 0.3 --clip 1 --steps 1500 --seed 10 --out runs/garg_lr/sgd_lr0.3_s10.json
+--opt adamw --lr 1e-4 --steps 1500 --seed 10 --out runs/garg_lr/adamw_lr1e-4_s10.json
+--opt adamw --lr 5e-4 --steps 1500 --seed 10 --out runs/garg_lr/adamw_lr5e-4_s10.json
+--opt adamw --lr 1e-3 --steps 1500 --seed 10 --out runs/garg_lr/adamw_lr1e-3_s10.json
+--opt muon --lr 0.0025 --steps 1500 --seed 10 --out runs/garg_lr/muon_lr0.0025_s10.json
+--opt muon --lr 0.02 --steps 1500 --seed 10 --out runs/garg_lr/muon_lr0.02_s10.json
+--opt muon --lr 1.5e-4 --power 1 --steps 1500 --seed 10 --out runs/garg_lr/muon_pow1_lr0.00015_s10.json
+--opt muon --lr 1.5e-3 --power 1 --steps 1500 --seed 10 --out runs/garg_lr/muon_pow1_lr0.0015_s10.json
+--opt muon --lr 0.007 --power 1 --steps 1500 --seed 10 --out runs/garg_lr/muon_pow1_lr0.007_s10.json

@@ -1,8 +1,0 @@
-3 jobs, 3 to run
-[      0s] start runs/knob/muon_pow1_init044_s10.json
-[      3s] start runs/knob/muon_pow0.25_init044_s10.json
-[      6s] start runs/knob/muon_pow0_init044_s10.json
-[   1854s] end   runs/knob/muon_pow0.25_init044_s10.json: done val=0.098135 wall=1843.0
-[   1864s] end   runs/knob/muon_pow0_init044_s10.json: done val=0.09186 wall=1849.3
-[   2004s] end   runs/knob/muon_pow1_init044_s10.json: done val=0.12343 wall=1998.0
-all done

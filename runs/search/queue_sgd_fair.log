@@ -1,6 +1,0 @@
-3 jobs, 3 to run
-[    770s] start runs/search/sgd_lr0.1_clip1_d2_s0.json
-[   1078s] end   runs/search/sgd_lr0.1_clip1_d2_s0.json: done val=1.0443 wall=303.5
-[   1078s] start runs/search/adamw_lr3e-4_d2_s0.json
-[   1416s] end   runs/search/adamw_lr3e-4_d2_s0.json: done val=0.17842 wall=329.8
-[   1627s] start runs/repro/garg_sgd0.1_clip1_cur_s0.json

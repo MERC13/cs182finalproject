@@ -1,2 +1,0 @@
---opt adamw --lr 1e-4 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/adamw_lr1e-4_iso.json
---opt sgd --lr 0.1 --clip 1.0 --cond iso --steps 4000 --y_mode sep --readin_init gauss --light_eval --qshift_every 100000 --out runs/sweep/sgd_lr0.1_clip1_iso.json

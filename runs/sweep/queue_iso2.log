@@ -1,4 +1,0 @@
-2 jobs, 2 to run
-[    205s] start runs/sweep/adamw_lr1e-4_iso.json
-[    728s] start runs/sweep/sgd_lr0.1_clip1_iso.json
-[   1041s] end   runs/sweep/adamw_lr1e-4_iso.json: done val=0.50386 wall=830.3

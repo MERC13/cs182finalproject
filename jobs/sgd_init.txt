@@ -1,4 +1,0 @@
-# SGD rescue, step 2: concatenated tokens + every hidden matrix at std 1/sqrt(128) (literature review, intervention 2)
---opt sgd --lr 0.1 --clip 1.0 --light_eval --eval_every 100 --qshift_every 100000 --y_mode concat --readin_init gauss --cond iso --seed 0 --steps 3000 --hidden_init 0.0884 --out runs/concat/sgd_lr0.1_init088_iso_s0.json
---opt sgd --lr 0.3 --clip 1.0 --light_eval --eval_every 100 --qshift_every 100000 --y_mode concat --readin_init gauss --cond iso --seed 0 --steps 3000 --hidden_init 0.0884 --out runs/concat/sgd_lr0.3_init088_iso_s0.json
---opt adamw --lr 5e-4 --light_eval --eval_every 100 --qshift_every 100000 --y_mode concat --readin_init gauss --cond iso --seed 0 --steps 3000 --hidden_init 0.0884 --out runs/concat/adamw_init088_iso_s0.json

@@ -1,8 +1,0 @@
-3 jobs, 3 to run
-[      0s] start runs/concat/sgd_lr0.1_init088_iso_s0.json
-[      3s] start runs/concat/sgd_lr0.3_init088_iso_s0.json
-[      6s] start runs/concat/adamw_init088_iso_s0.json
-[   1460s] end   runs/concat/sgd_lr0.3_init088_iso_s0.json: done val=0.21509 wall=1442.4
-[   1485s] end   runs/concat/adamw_init088_iso_s0.json: done val=0.1751 wall=1468.3
-[   1500s] end   runs/concat/sgd_lr0.1_init088_iso_s0.json: done val=0.1844 wall=1490.5
-all done

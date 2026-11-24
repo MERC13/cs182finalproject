@@ -1,6 +1,0 @@
-[  207s] LR sweep done (24 runs)
-1/i2-ali  muon_exact batch    16: lr 0.003  final loss 0.1753
-1/i2-ali  muon_exact batch    64: lr 0.01  final loss 0.1739
-1/i2-ali  muon_exact batch   256: lr 0.01  final loss 0.1675
-1/i2-ali  muon_exact batch  1024: lr 0.02  final loss 0.1645
-done in 276s -> runs/linattn/noise_sweep_muonvar_exact.json

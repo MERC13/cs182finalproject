@@ -1,4 +1,0 @@
-1 jobs, 1 to run
-[   1340s] start runs/sweep/muon_lr0.005_aux3e-4_iso.json
-[   2038s] end   runs/sweep/muon_lr0.005_aux3e-4_iso.json: done val=0.1585 wall=692.6
-all done

@@ -1,2 +1,0 @@
-/usr/local/lib/python3.13/site-packages/numpy/lib/_function_base_impl.py:2610: RuntimeWarning: invalid value encountered in <lambda> (vectorized)
-  outputs = ufunc(*args, out=...)
