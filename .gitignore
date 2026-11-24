@@ -1,7 +1,2 @@
 __pycache__/
 *.ckpt
-paper/*
-!paper/main.tex
-!paper/main.pdf
-!paper/nips15submit_e.sty
-!paper/figures/

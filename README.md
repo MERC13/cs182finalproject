@@ -1,6 +1,6 @@
 # How Optimizers Shape In-Context Learning
 
-Code and data for the CS 182 project paper ([`paper/main.pdf`](paper/main.pdf)). We train a GPT-2 and one-layer
+Code and data for our CS 182 project paper, *How Optimizers Shape In-Context Learning*. We train a GPT-2 and one-layer
 linear attention on in-context linear regression with SGD, AdamW and Muon, and compare the in-context algorithm each
 one learns.
 
@@ -13,9 +13,8 @@ pip install -r requirements.txt
 Every figure and number is computed from the committed logs in `runs/`; this takes a few seconds.
 
 ```bash
-python scripts/figures.py        # paper/figures/*.pdf
+python scripts/figures.py        # figures/*.pdf
 python scripts/results.py        # every number in the text and tables
-cd paper && latexmk -pdf main.tex
 ```
 
 ## Retrain
@@ -46,6 +45,7 @@ model = GPT2.load("runs/garg_scale/muon_s10.pt")   # model(x, y) -> predictions
 | `icl/linattn.py` | linear attention: model, exact losses, learning-rate sweep |
 | `icl/analysis.py` | reading the logs at a matched error |
 | `scripts/` | `figures.py` and `results.py` |
+| `figures/` | the paper's figures |
 | `runs/garg_scale/` | logs (`.json`) and final weights (`.pt`) of the 12-layer GPT-2 runs |
 | `runs/garg_lr/` | the learning-rate check (Appendix B) |
 | `runs/linattn.json` | the linear-attention runs |

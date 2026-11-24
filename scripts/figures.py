@@ -1,4 +1,4 @@
-"""The paper's figures, from the logs in runs/. Writes paper/figures/*.pdf.
+"""The paper's figures, from the logs in runs/. Writes figures/*.pdf.
 
   python scripts/figures.py
 """
@@ -20,7 +20,7 @@ from icl.data import eval_prompts, spectrum  # noqa: E402
 from icl.estimators import at_every_k, pcr, ridge  # noqa: E402
 from icl.train import D, EVAL_SEED, N  # noqa: E402
 
-OUT = "paper/figures"
+OUT = "figures"
 W = 5.5  # text width, inches
 ORDER = ["SGD", "AdamW", "Muon, p = 1", "Muon"]
 COL = {"SGD": "#1baf7a", "AdamW": "#eb6834", "Muon": "#2a78d6", "Muon, p = 1": "#6f6e69"}
