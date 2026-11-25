@@ -77,6 +77,10 @@ def algorithm():
         n = sum(a["pcr"] > b["pcr"] for a, b in pairs)
         print(f"  Muon farther from PCR than {other} in {n}/{len(pairs)} seed-error pairs "
               f"(errors {', '.join(map(str, LEVELS))})")
+    for arm in ARMS:
+        reads = [S[arm, s, lv] for s in SEEDS for lv in LEVELS if S[arm, s, lv]]
+        n = sum(x["pcr"] > x["ridge"] for x in reads)
+        print(f"  {arm:12s} closer to ridge than to PCR in {n}/{len(reads)} seed-error pairs")
     far = [S[arm, s, 0.04]["gd"] / min(S[arm, s, 0.04]["pcr"], S[arm, s, 0.04]["ridge"]) for arm in ARMS for s in SEEDS]
     print(f"  one-step gradient descent (nearest variant) is {min(far):.0f}-{max(far):.0f} times farther than PCR or ridge")
     header("Same comparisons at errors 0.05 and 0.03")
@@ -94,6 +98,7 @@ def shifts(level=0.04):
     for arm in ("Muon", "Muon, p = 1", "SGD"):
         ratio = np.array([q[arm, s] / q["AdamW", s] for s in SEEDS])
         print(f"  {arm:12s} " + "  ".join(f"t={t:+g}: {ratio[:, i].min():.2f}-{ratio[:, i].max():.2f}"
+                                           f" (lower in {(ratio[:, i] < 1).sum()}/{len(SEEDS)})"
                                            for i, t in sorted(enumerate(SHIFTS), key=lambda x: x[1]) if t != 0))
     for tt in (-1.0, 1.0):
         i = SHIFTS.index(tt)
