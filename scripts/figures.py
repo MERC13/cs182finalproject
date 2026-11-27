@@ -21,6 +21,7 @@ from icl.estimators import at_every_k, pcr, ridge  # noqa: E402
 from icl.train import D, EVAL_SEED, N  # noqa: E402
 
 OUT = "figures"
+NO_DATE = {"CreationDate": None}  # PDFs without a timestamp, so reruns are byte-identical
 W = 5.5  # text width, inches
 ORDER = ["SGD", "AdamW", "Muon, p = 1", "Muon"]
 COL = {"SGD": "#1baf7a", "AdamW": "#eb6834", "Muon": "#2a78d6", "Muon, p = 1": "#6f6e69"}
@@ -113,7 +114,7 @@ def fig_loss():
     handles = [plt.Line2D([], [], color=COL[a], ls=LS[a], lw=1.6) for a in ORDER]
     fig.legend(handles, [NAME[a] for a in ORDER], loc="upper center", ncol=4, frameon=False, bbox_to_anchor=(0.5, 1.06))
     fig.tight_layout(w_pad=2.2)
-    fig.savefig(f"{OUT}/fig_loss.pdf")
+    fig.savefig(f"{OUT}/fig_loss.pdf", metadata=NO_DATE)
 
 
 def reference_probe(estimator):
@@ -152,7 +153,7 @@ def fig_h1(level=0.04):
     ax.set_ylim(-1.05, 1.1)
     ax.set_xlabel("input direction $j$ (most common $\\rightarrow$ rarest)")
     ax.set_ylabel("probe score $f_j$")
-    ax.set_title(f"(a) Single-direction scores, error {level}")
+    ax.set_title("(a) Single-direction scores")
     ax.legend(frameon=False, loc="center left", bbox_to_anchor=(0.01, 0.42), handlelength=1.8)
     grid(ax)
     ax = axs[1]
@@ -168,13 +169,13 @@ def fig_h1(level=0.04):
     ax.axhline(0, color=INK2, lw=0.6)
     ax.set_xticks(range(3), [o[1] for o in others])
     ax.set_xlim(-0.55, 2.55)
-    ax.set_ylim(-0.03, 0.13)
+    ax.set_ylim(-0.045, 0.13)
     ax.set_ylabel("Muon's lead (directions 3--20)")
     ax.set_title("(b) Muon's lead, per seed")
     ax.legend(frameon=False, loc="upper right", fontsize=7)
     grid(ax)
     fig.tight_layout(w_pad=1.6)
-    fig.savefig(f"{OUT}/fig_h1.pdf")
+    fig.savefig(f"{OUT}/fig_h1.pdf", metadata=NO_DATE)
 
 
 def fig_h2(level=0.04):
@@ -215,7 +216,7 @@ def fig_h2(level=0.04):
     ax.text(-0.75, 0.012, "tiny cost", fontsize=7, color=INK2, ha="center")
     ax.text(0.9, -0.044, "gain", fontsize=7, color=INK2, ha="right")
     fig.tight_layout(w_pad=1.8)
-    fig.savefig(f"{OUT}/fig_h2.pdf")
+    fig.savefig(f"{OUT}/fig_h2.pdf", metadata=NO_DATE)
 
 
 def fig_linattn():
@@ -254,14 +255,14 @@ def fig_linattn():
 
     ax = fig.add_subplot(gs[0, 1])
     ratio = lambda arm: [pcr_ridge_ratio(by[arm, s], lam) for s in seeds]
-    ax.axhspan(0.3, 1, color="#fdeee6", lw=0, zorder=0)
+    ax.axhspan(0.25, 1, color="#fdeee6", lw=0, zorder=0)
     ax.axhspan(1, 7, color="#e6f0fb", lw=0, zorder=0)
-    ax.text(-0.3, 0.34, "PCR-like", fontsize=7, color=INK2, va="bottom")
+    ax.text(-0.3, 0.27, "PCR-like", fontsize=7, color=INK2, va="bottom")
     ax.text(-0.3, 6.3, "ridge-like", fontsize=7, color=INK2, va="top")
     knob(ax, [ratio(f"muon_p{p:g}") for p in powers],
          [(a, np.median(ratio(k))) for k, a in (("sgd", "SGD"), ("adam", "AdamW"), ("muon", "Muon"))])
     ax.set_yscale("log")
-    ax.set_ylim(0.3, 7)
+    ax.set_ylim(0.25, 7)
     ax.set_yticks([0.5, 1, 2, 5], ["0.5", "1", "2", "5"])
     ax.minorticks_off()
     ax.set_xticks(x, [])
@@ -275,7 +276,7 @@ def fig_linattn():
     ax.set_xlabel("flattening power $p$ (1: none, 0: full)")
     ax.set_ylabel("loss / Adam's")
     ax.set_title("(c) Queries shifted to rare directions")
-    fig.savefig(f"{OUT}/fig_linattn.pdf")
+    fig.savefig(f"{OUT}/fig_linattn.pdf", metadata=NO_DATE)
 
 
 if __name__ == "__main__":
