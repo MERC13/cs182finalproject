@@ -8,7 +8,8 @@ from .data import eval_prompts, spectrum
 from .train import D, EVAL_SEED, N, SHIFTS
 
 SEEDS = (10, 11, 12, 13, 14)
-ARMS = {"SGD": "sgd_s{}", "AdamW": "adamw_s{}", "Muon": "muon_s{}", "Muon, p = 1": "muon_pow1_lr0.0005_s{}"}
+ARMS = {"SGD": "sgd_s{}", "AdamW": "adamw_s{}", "Muon": "muon_s{}", "Muon, p = 1": "muon_pow1_lr0.0005_s{}",
+        "Muon, p = 0": "muon_exact_s{}"}
 
 
 class Run:
@@ -24,15 +25,19 @@ class Run:
         self.train_loss = np.array([np.nan if e["train_loss"] is None else e["train_loss"] for e in ev])
         self.probe = 1 - np.array([e["probe_err_k"] for e in ev])[:, :, 16:].mean(2)  # f_j, predictions with 16-40
         self.dist = {k: np.array([e["dist_8_32"][k] for e in ev]) for k in ev[0]["dist_8_32"]}
+        self.gain_rows = np.array([i for i, e in enumerate(ev) if "iw_gain" in e])  # logged every 100 steps
+        self.gain = np.array([ev[i]["iw_gain"] for i in self.gain_rows])  # how much of each direction is used
+        self.gain_r2 = np.array([ev[i]["iw_r2"] for i in self.gain_rows])  # how linear the predictions are in x_q
         self.shift = [np.array(e["qshift_err"]) * shift_scale() for e in ev if "qshift_err" in e]
 
     def first_step(self, level):
         i = np.nonzero(self.err <= level)[0]
         return int(self.steps[i[0]]) if len(i) else None
 
-    def at(self, values, level):
-        """`values` at error `level`, interpolated linearly in log error; None if the run never gets there."""
-        e, v = self.err, np.asarray(values)
+    def at(self, values, level, rows=None):
+        """`values` at error `level`, interpolated linearly in log error; None if the run never gets there. rows: the
+        evaluations `values` was logged at, if not all of them."""
+        e, v = (self.err if rows is None else self.err[rows]), np.asarray(values)
         i = np.nonzero(e <= level)[0]
         if not len(i):
             return None
@@ -41,6 +46,9 @@ class Run:
             return v[0]
         w = (np.log(e[i - 1]) - np.log(level)) / (np.log(e[i - 1]) - np.log(e[i]))
         return v[i - 1] + w * (v[i] - v[i - 1])
+
+    def gain_at(self, level):
+        return self.at(self.gain, level, self.gain_rows)
 
     def shift_at(self, level):
         """Error per query shift t (SHIFTS order) where the unshifted error on the same prompts crosses `level`,

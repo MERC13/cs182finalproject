@@ -2,6 +2,7 @@
 
   python scripts/results.py
 """
+import math
 import os
 import sys
 
@@ -14,7 +15,7 @@ from icl.analysis import SEEDS, SHIFTS, at_excess, linattn, nearest, pcr_ridge_r
 from icl.data import spectrum  # noqa: E402
 from icl.model import GPT2  # noqa: E402
 
-ARMS = ["SGD", "AdamW", "Muon", "Muon, p = 1"]
+ARMS = ["SGD", "AdamW", "Muon", "Muon, p = 1", "Muon, p = 0"]
 LEVELS = (0.05, 0.04, 0.03)
 
 
@@ -48,54 +49,71 @@ def speed():
         print(f"  error {level}: " + "   ".join(cells))
 
 
+def paired_t(d):
+    """Paired t-test across seeds: the t statistic and its one-sided p-value (Student t, n - 1 degrees of freedom)."""
+    d = np.asarray(d, dtype=float)
+    k = len(d) - 1
+    t = d.mean() / (d.std(ddof=1) / math.sqrt(len(d)))
+    x = np.linspace(abs(t), abs(t) + 1000, 1_000_001)
+    density = math.gamma((k + 1) / 2) / (math.sqrt(k * math.pi) * math.gamma(k / 2)) * (1 + x * x / k) ** (-(k + 1) / 2)
+    return t, float(np.trapezoid(density, x))
+
+
 def scores(arm, seed, level):
-    """Probe profile, raw and bounded score over directions 3-20, and distances to the reference families, all read
-    at the matched error."""
+    """At the matched error: probe score and gain averaged over directions 3-20, and distances to the nearest
+    reference of each family."""
     r = run(arm, seed)
     f = r.at(r.probe, level)
     if f is None:
         return None
     dist = {k: r.at(v, level) for k, v in r.dist.items()}
-    return dict(f=f, raw=f[2:].mean(), bounded=np.clip(f[2:], 0, None).mean(), learned=int((f > 0.5).sum()),
-                pcr=nearest(dist, "pcr_"), ridge=nearest(dist, "ridge_"),
-                gd=min(nearest(dist, "gdpre_"), dist["gd1"]))
+    return dict(probe=f[2:].mean(), gain=r.gain_at(level)[2:].mean(), learned=int((f > 0.5).sum()), f=f,
+                r2=r.at(r.gain_r2, level, r.gain_rows),
+                pcr=nearest(dist, "pcr_"), ridge=nearest(dist, "ridge_"), gd=min(nearest(dist, "gdpre_"), dist["gd1"]),
+                nearest_m=min((k for k in dist if k.startswith("pcr_")), key=dist.get)[4:],
+                nearest_a=min((k for k in dist if k.startswith("ridge_")), key=dist.get)[6:])
 
 
 def algorithm():
     S = {(arm, s, lv): scores(arm, s, lv) for arm in ARMS for s in SEEDS for lv in LEVELS}
-    header("3.2 and Table 1, at error 0.04: mean +- s.d. over seeds")
+    keys = (("probe", "probe score"), ("gain", "gain"), ("pcr", "distance to PCR"), ("ridge", "distance to ridge"))
+    header("3.2-3.3 and Table 1, at error 0.04: mean +- s.d. over seeds (probe score and gain: directions 3-20)")
     for arm in ARMS:
         v = lambda k: np.array([S[arm, s, 0.04][k] for s in SEEDS])
-        print(f"  {arm:12s} directions learned {sorted(set(v('learned').tolist()))}  probe {v('raw').mean():.2f} +- "
-              f"{v('raw').std(ddof=1):.2f}  bounded {v('bounded').mean():.2f} +- {v('bounded').std(ddof=1):.2f}  "
-              f"distance to PCR {v('pcr').mean():.3f}, to ridge {v('ridge').mean():.3f}")
-    for key, name in (("raw", "probe score"), ("bounded", "bounded score"), ("pcr", "distance to PCR")):
-        d = [S["Muon", s, 0.04][key] - S["AdamW", s, 0.04][key] for s in SEEDS]
-        print(f"  Muon - AdamW, {name}: mean {np.mean(d):+.3f}; per seed {per_seed(d)}")
-    for other in ("AdamW", "SGD", "Muon, p = 1"):
-        pairs = [(S["Muon", s, lv], S[other, s, lv]) for s in SEEDS for lv in LEVELS if S[other, s, lv]]
-        n = sum(a["pcr"] > b["pcr"] for a, b in pairs)
-        print(f"  Muon farther from PCR than {other} in {n}/{len(pairs)} seed-error pairs "
-              f"(errors {', '.join(map(str, LEVELS))})")
+        print(f"  {arm:12s} " + "  ".join(f"{name} {v(k).mean():.3f} +- {v(k).std(ddof=1):.3f}" for k, name in keys)
+              + f"  | learned (f > 0.5) {sorted(set(v('learned').tolist()))}, nearest PCR_m m = "
+              f"{sorted(set(v('nearest_m').tolist()), key=int)}, ridge alpha = {sorted(set(v('nearest_a').tolist()))}")
+    for a, b in (("Muon", "AdamW"), ("Muon, p = 0", "Muon, p = 1"), ("Muon", "SGD")):
+        for k, name in keys:
+            d = [S[a, s, 0.04][k] - S[b, s, 0.04][k] for s in SEEDS]
+            print(f"  {a} - {b}, {name}: mean {np.mean(d):+.3f}; per seed {per_seed(d)}")
+    header("Errors 0.05, 0.04 and 0.03 together (seed-error pairs)")
+    for a, b in (("Muon", "AdamW"), ("Muon, p = 0", "Muon, p = 1"), ("Muon", "SGD")):
+        pairs = [(S[a, s, lv], S[b, s, lv]) for s in SEEDS for lv in LEVELS if S[a, s, lv] and S[b, s, lv]]
+        print(f"  {a} vs {b}: probe score higher in {sum(x['probe'] > y['probe'] for x, y in pairs)}/{len(pairs)}, "
+              f"farther from PCR in {sum(x['pcr'] > y['pcr'] for x, y in pairs)}/{len(pairs)}")
+    for lv in LEVELS:
+        cells = []
+        for a, b in (("Muon", "AdamW"), ("Muon, p = 0", "Muon, p = 1")):
+            d = [S[a, s, lv]["gain"] - S[b, s, lv]["gain"] for s in SEEDS if S[a, s, lv] and S[b, s, lv]]
+            cells.append(f"{a} - {b} gain {np.mean(d):+.3f} (> 0 in {sum(x > 0 for x in d)}/{len(d)})")
+        print(f"  error {lv}: " + "   ".join(cells))
     for arm in ARMS:
         reads = [S[arm, s, lv] for s in SEEDS for lv in LEVELS if S[arm, s, lv]]
-        n = sum(x["pcr"] > x["ridge"] for x in reads)
-        print(f"  {arm:12s} closer to ridge than to PCR in {n}/{len(reads)} seed-error pairs")
+        print(f"  {arm:12s} closer to ridge than to PCR in {sum(x['pcr'] > x['ridge'] for x in reads)}/{len(reads)}")
+    lead = np.mean([S["Muon", s, 0.04]["f"] - S["AdamW", s, 0.04]["f"] for s in SEEDS], 0)
+    print(f"  Muon - AdamW probe score, summed over directions 12-15: {lead[11:15].sum():+.2f}; over the other "
+          f"directions 3-20: {lead[2:11].sum() + lead[15:].sum():+.2f}")
+    print(f"  linear fits behind the gains: R^2 >= {min(x['r2'] for x in S.values() if x):.4f} at every matched read")
     far = [S[arm, s, 0.04]["gd"] / min(S[arm, s, 0.04]["pcr"], S[arm, s, 0.04]["ridge"]) for arm in ARMS for s in SEEDS]
     print(f"  one-step gradient descent (nearest variant) is {min(far):.0f}-{max(far):.0f} times farther than PCR or ridge")
-    header("Same comparisons at errors 0.05 and 0.03")
-    for lv in (0.05, 0.03):
-        for other in ("AdamW", "SGD", "Muon, p = 1"):
-            d = [S["Muon", s, lv]["raw"] - S[other, s, lv]["raw"] for s in SEEDS if S[other, s, lv]]
-            if d:
-                print(f"  error {lv}: Muon - {other} probe score {per_seed(d)}")
 
 
 def shifts(level=0.04):
-    header(f"3.3 Shifted queries at error {level}")
+    header(f"3.4 Shifted queries at error {level}")
     q = {(arm, s): run(arm, s).shift_at(level) for arm in ARMS for s in SEEDS}
     print("  error / AdamW's, range over seeds, for each shift t (t < 0: common-ward, t > 0: rare-ward)")
-    for arm in ("Muon", "Muon, p = 1", "SGD"):
+    for arm in ("Muon", "Muon, p = 0", "Muon, p = 1", "SGD"):
         ratio = np.array([q[arm, s] / q["AdamW", s] for s in SEEDS])
         print(f"  {arm:12s} " + "  ".join(f"t={t:+g}: {ratio[:, i].min():.2f}-{ratio[:, i].max():.2f}"
                                            f" (lower in {(ratio[:, i] < 1).sum()}/{len(SEEDS)})"
@@ -103,30 +121,27 @@ def shifts(level=0.04):
     for tt in (-1.0, 1.0):
         i = SHIFTS.index(tt)
         base = np.mean([q["AdamW", s][i] for s in SEEDS])
-        diff = np.mean([q["Muon", s][i] - q["AdamW", s][i] for s in SEEDS])
-        print(f"  t = {tt:+g}: AdamW's error {base:.3f}, Muon - AdamW {diff:+.3f} (mean over seeds)")
-
-
-def exact_muon():
-    header("3.4 Exact orthogonalization (seed 10) next to Muon and AdamW: probe score at each error")
-    for lv in LEVELS:
-        cells = []
-        for name in ("muon_exact_s10", "muon_s10", "adamw_s10"):
-            r = run(f"garg_scale/{name}")
-            cells.append(f"{name} {r.at(r.probe, lv)[2:].mean():+.3f}")
-        print(f"  error {lv}: " + "  ".join(cells))
+        d = [q["Muon", s][i] - q["AdamW", s][i] for s in SEEDS]
+        t, p = paired_t(d)
+        print(f"  t = {tt:+g}: AdamW's error {base:.3f}; Muon - AdamW {np.mean(d):+.4f} "
+              f"({np.mean(d) / base:+.0%}), paired t = {t:+.1f}, one-sided p = {p:.3f}")
 
 
 def linear_attention():
-    header("3.4 Linear attention: PCR fit / ridge fit (median [min-max] over seeds); rare-ward loss vs Adam at excess 0.1")
-    lam, runs = linattn()
-    arms = list(dict.fromkeys(r["arm"] for r in runs))
-    rare = {a: np.median([at_excess(r, r["qloss"], 0.1) for r in runs if r["arm"] == a]) for a in arms}
-    for a in arms:
-        ratios = [pcr_ridge_ratio(r, lam) for r in runs if r["arm"] == a]
-        lr = next(r["lr"] for r in runs if r["arm"] == a)
-        print(f"  {a:10s} lr {lr:<6g} ratio {np.median(ratios):.2f} [{min(ratios):.2f}-{max(ratios):.2f}]  "
-              f"rare-ward loss / Adam's {rare[a] / rare['adam']:.2f}")
+    header("3.5 Linear attention at excess loss 0.1: PCR fit / ridge fit, and rare-ward loss / Adam's (same seed); "
+           "median [min-max] over seeds")
+    for path in ("runs/linattn.json", "runs/linattn_rotated.json"):
+        lam, runs = linattn(path)
+        print(f"  {path}")
+        by = {(r["arm"], r["seed"]): r for r in runs}
+        for a in dict.fromkeys(r["arm"] for r in runs):
+            seeds = sorted(s for arm, s in by if arm == a)
+            ratio = [pcr_ridge_ratio(by[a, s], lam) for s in seeds]
+            rare = [at_excess(by[a, s], by[a, s]["qloss"], 0.1) / at_excess(by["adam", s], by["adam", s]["qloss"], 0.1)
+                    for s in seeds]
+            print(f"    {a:10s} lr {by[a, seeds[0]]['lr']:<6g} PCR fit / ridge fit {np.median(ratio):.2f} "
+                  f"[{min(ratio):.2f}-{max(ratio):.2f}]   rare-ward loss / Adam's {np.median(rare):.2f} "
+                  f"[{min(rare):.2f}-{max(rare):.2f}]")
 
 
 def lr_check():
@@ -161,6 +176,5 @@ if __name__ == "__main__":
     speed()
     algorithm()
     shifts()
-    exact_muon()
     linear_attention()
     lr_check()

@@ -21,6 +21,10 @@
 --opt muon --lr 0.007 --steps 2000 --seed 14 --out runs/garg_scale/muon_s14.json
 --opt muon --lr 5e-4 --power 1 --steps 4000 --seed 14 --out runs/garg_scale/muon_pow1_lr0.0005_s14.json
 --opt muon --lr 0.007 --power 0 --steps 3000 --seed 10 --out runs/garg_scale/muon_exact_s10.json
+--opt muon --lr 0.007 --power 0 --steps 1500 --seed 11 --out runs/garg_scale/muon_exact_s11.json
+--opt muon --lr 0.007 --power 0 --steps 1500 --seed 12 --out runs/garg_scale/muon_exact_s12.json
+--opt muon --lr 0.007 --power 0 --steps 1500 --seed 13 --out runs/garg_scale/muon_exact_s13.json
+--opt muon --lr 0.007 --power 0 --steps 1500 --seed 14 --out runs/garg_scale/muon_exact_s14.json
 # Learning-rate check (runs/garg_lr)
 --opt sgd --lr 0.03 --clip 1 --steps 1500 --seed 10 --out runs/garg_lr/sgd_lr0.03_s10.json
 --opt sgd --lr 0.3 --clip 1 --steps 1500 --seed 10 --out runs/garg_lr/sgd_lr0.3_s10.json

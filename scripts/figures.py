@@ -47,6 +47,18 @@ def label(ax, x, y, text):
                 annotation_clip=False)
 
 
+def spread(ys, gap):
+    """Label heights on a log axis: the given values, pushed apart to at least `gap` decades."""
+    order = np.argsort(ys)
+    logs = np.log10(np.asarray(ys, dtype=float)[order])
+    for i in range(1, len(logs)):
+        logs[i] = max(logs[i], logs[i - 1] + gap)
+    logs -= (logs.mean() - np.log10(np.asarray(ys, dtype=float)).mean())  # keep the group centred
+    out = np.empty_like(logs)
+    out[order] = 10 ** logs
+    return out
+
+
 def band(ax, x, m, sd, arm):
     ax.plot(x, m, LS[arm], color=COL[arm], lw=1.6)
     ax.fill_between(x, np.maximum(m - sd, 1e-3), m + sd, color=COL[arm], alpha=0.18, lw=0)
@@ -64,13 +76,13 @@ def curves(arm):
 
 def fig_loss():
     fig, axs = plt.subplots(1, 2, figsize=(W, 2.05))
+    ends = {}
     for arm in ORDER:
         steps, train, val, err = curves(arm)
         band(axs[0], steps[1:], val[:, 1:].mean(0), val[:, 1:].std(0, ddof=1), arm)  # step 0: no training loss yet
         axs[0].plot(steps[1:], train[:, 1:].mean(0), ":", color=COL[arm], lw=1.0)
         band(axs[1], steps, err.mean(0), err.std(0, ddof=1), arm)
-        if arm == "Muon":
-            label(axs[1], steps[-1], err.mean(0)[-1], "Muon")
+        ends[arm] = (steps[-1], err.mean(0)[-1])
     ax = axs[0]
     ax.plot([], [], "-", color=INK2, lw=1.6, label="validation")
     ax.plot([], [], ":", color=INK2, lw=1.0, label="training")
@@ -83,7 +95,9 @@ def fig_loss():
     ax = axs[1]
     for level in (0.05, 0.04, 0.03):
         ax.axhline(level, color=INK2, lw=0.6, ls=(0, (2, 2)))
-    for arm, y in (("SGD", 0.052), ("AdamW", 0.0315), ("Muon, p = 1", 0.0235)):
+    label(ax, *ends["Muon"], "Muon")
+    at_4k = [a for a in ORDER if a != "Muon"]
+    for arm, y in zip(at_4k, spread([ends[a][1] for a in at_4k], 0.17)):
         label(ax, 4000, y, NAME[arm])
     ax.set_yscale("log")
     ax.set_ylim(0.008, 1.1)
@@ -114,11 +128,12 @@ def reference_probe(estimator):
 
 def fig_h1(level=0.04):
     profile = {(arm, s): run(arm, s).at(run(arm, s).probe, level) for arm in ORDER for s in SEEDS}
+    gain = {(arm, s): run(arm, s).gain_at(level)[2:].mean() for arm in ORDER for s in SEEDS}
     j = np.arange(1, D + 1)
     fig, axs = plt.subplots(1, 2, figsize=(W, 2.2), gridspec_kw=dict(width_ratios=[1.45, 1]))
     ax = axs[0]
     ax.axhspan(-1.05, 0, color="#f3f2ef", lw=0, zorder=0)
-    ax.text(1.3, -0.93, "below 0: direction ignored (as PCR does)", fontsize=7, color=INK2, va="bottom")
+    ax.text(1.3, -0.93, "below 0: worse than predicting zero", fontsize=7, color=INK2, va="bottom")
     f_pcr = reference_probe(pcr(torch.tensor(spectrum(D)), 11))
     f_ridge = reference_probe(ridge(1.0))
     ax.plot(j, f_pcr, color=INK, lw=0.9, ls=(0, (4, 2)), drawstyle="steps-mid")
@@ -137,16 +152,15 @@ def fig_h1(level=0.04):
     ax.set_ylim(-1.05, 1.1)
     ax.set_xlabel("input direction $j$ (most common $\\rightarrow$ rarest)")
     ax.set_ylabel("probe score $f_j$")
-    ax.set_title(f"(a) What is learned, at error {level}")
+    ax.set_title(f"(a) Single-direction scores, error {level}")
     ax.legend(frameon=False, loc="center left", bbox_to_anchor=(0.01, 0.42), handlelength=1.8)
     grid(ax)
     ax = axs[1]
     others = (("AdamW", "vs AdamW"), ("Muon, p = 1", "vs $p{=}1$"), ("SGD", "vs SGD"))
     for k, (other, _) in enumerate(others):
-        for dx, bound, color, name in ((-0.16, False, COL["Muon"], "probe score $\\bar f$"),
-                                       (0.16, True, "#9ec5f4", "bounded score $\\bar f_+$")):
-            score = lambda f: np.mean(np.clip(f[2:], 0, None) if bound else f[2:])
-            lead = np.array([score(profile["Muon", s]) - score(profile[other, s]) for s in SEEDS])
+        for dx, color, name, score in ((-0.16, COL["Muon"], "probe score $\\bar f$", lambda a, s: profile[a, s][2:].mean()),
+                                       (0.16, "#9ec5f4", "gain $\\bar g$", lambda a, s: gain[a, s])):
+            lead = np.array([score("Muon", s) - score(other, s) for s in SEEDS])
             ax.bar(k + dx, lead.mean(), width=0.28, color=color, zorder=2, label=name if k == 0 else None)
             ax.errorbar(k + dx, lead.mean(), yerr=lead.std(ddof=1), fmt="none", ecolor=INK, elinewidth=0.9, capsize=2,
                         zorder=3)
@@ -206,12 +220,16 @@ def fig_h2(level=0.04):
 
 def fig_linattn():
     lam, runs = linattn()
-    by_arm = lambda arm: [r for r in runs if r["arm"] == arm]
-    fig, axs = plt.subplots(1, 2, figsize=(W, 2.15))
-    ax = axs[0]
+    by = {(r["arm"], r["seed"]): r for r in runs}
+    seeds = sorted({s for _, s in by})
+    powers = (1, 0.75, 0.5, 0.25, 0.1, 0)
+    x = np.arange(len(powers))
+    fig = plt.figure(figsize=(W, 2.75))
+    gs = fig.add_gridspec(2, 2, width_ratios=[1, 1.1], hspace=0.35, wspace=0.42)
+    ax = fig.add_subplot(gs[:, 0])
     j = np.arange(1, len(lam) + 1)
     for key, arm in (("sgd", "SGD"), ("adam", "AdamW"), ("muon_p1", "Muon, p = 1"), ("muon", "Muon")):
-        P = np.array([at_excess(r, r["gain"], 0.1) for r in by_arm(key)])
+        P = np.array([at_excess(by[key, s], by[key, s]["gain"], 0.1) for s in seeds])
         ax.plot(j, np.median(P, 0), LS[arm], color=COL[arm], marker="o", ms=3, lw=1.8 if arm == "Muon" else 1.3,
                 label=NAME[arm].replace("AdamW", "Adam"), zorder=3)
         ax.fill_between(j, P.min(0), P.max(0), color=COL[arm], alpha=0.15, lw=0)
@@ -222,33 +240,41 @@ def fig_linattn():
     ax.set_xticks(j)
     ax.legend(frameon=False, loc="upper right", handlelength=1.8)
     grid(ax)
-    ax = axs[1]
-    ratio = {arm: [pcr_ridge_ratio(r, lam) for r in by_arm(arm)] for arm in {r["arm"] for r in runs}}
-    powers = (1, 0.75, 0.5, 0.25, 0.1, 0)
-    x = np.arange(len(powers))
-    R = [ratio[f"muon_p{p:g}"] for p in powers]
-    med = np.array([np.median(v) for v in R])
+
+    def knob(ax, values, baselines):
+        """Median and min-max over seeds across the knob, with the baseline optimizers as dashed lines."""
+        med = np.array([np.median(v) for v in values])
+        ax.errorbar(x, med, yerr=[med - [min(v) for v in values], [max(v) for v in values] - med], fmt="o-", color=INK,
+                    ms=3.5, lw=1.3, zorder=3)
+        for arm, m in baselines:
+            ax.axhline(m, color=COL[arm], lw=1.1, ls=(0, (4, 2)), zorder=2)
+            ax.text(5.55, m, NAME[arm].replace("AdamW", "Adam"), fontsize=7, va="center")
+        ax.set_xlim(-0.4, 5.4)
+        grid(ax)
+
+    ax = fig.add_subplot(gs[0, 1])
+    ratio = lambda arm: [pcr_ridge_ratio(by[arm, s], lam) for s in seeds]
     ax.axhspan(0.3, 1, color="#fdeee6", lw=0, zorder=0)
     ax.axhspan(1, 7, color="#e6f0fb", lw=0, zorder=0)
-    ax.text(-0.35, 0.33, "PCR-like", fontsize=7.5, color=INK2, va="bottom")
-    ax.text(-0.35, 6.2, "ridge-like", fontsize=7.5, color=INK2, va="top")
-    ax.axhline(1, color=INK2, lw=0.6)
-    ax.errorbar(x, med, yerr=[med - [min(v) for v in R], [max(v) for v in R] - med], fmt="o-", color=INK, ms=4, lw=1.3,
-                zorder=3)
-    for key, arm in (("sgd", "SGD"), ("adam", "AdamW"), ("muon", "Muon")):
-        m = np.median(ratio[key])
-        ax.axhline(m, color=COL[arm], lw=1.2, ls=(0, (4, 2)), zorder=2)
-        ax.text(5.55, m, NAME[arm].replace("AdamW", "Adam"), fontsize=7.5, va="center")
+    ax.text(-0.3, 0.34, "PCR-like", fontsize=7, color=INK2, va="bottom")
+    ax.text(-0.3, 6.3, "ridge-like", fontsize=7, color=INK2, va="top")
+    knob(ax, [ratio(f"muon_p{p:g}") for p in powers],
+         [(a, np.median(ratio(k))) for k, a in (("sgd", "SGD"), ("adam", "AdamW"), ("muon", "Muon"))])
     ax.set_yscale("log")
     ax.set_ylim(0.3, 7)
     ax.set_yticks([0.5, 1, 2, 5], ["0.5", "1", "2", "5"])
     ax.minorticks_off()
+    ax.set_xticks(x, [])
+    ax.set_ylabel("PCR / ridge fit")
+    ax.set_title("(b) Which algorithm")
+    ax = fig.add_subplot(gs[1, 1])
+    rare = lambda arm: [at_excess(by[arm, s], by[arm, s]["qloss"], 0.1) / at_excess(by["adam", s], by["adam", s]["qloss"], 0.1)
+                        for s in seeds]
+    knob(ax, [rare(f"muon_p{p:g}") for p in powers], [("AdamW", 1.0), ("Muon", np.median(rare("muon")))])
     ax.set_xticks(x, [f"{p:g}" for p in powers])
-    ax.set_xlim(-0.4, 5.4)
     ax.set_xlabel("flattening power $p$ (1: none, 0: full)")
-    ax.set_ylabel("PCR fit / ridge fit (log)")
-    ax.set_title("(b) Flattening switches the algorithm")
-    fig.tight_layout(w_pad=2.6)
+    ax.set_ylabel("loss / Adam's")
+    ax.set_title("(c) Queries shifted to rare directions")
     fig.savefig(f"{OUT}/fig_linattn.pdf")
 
 

@@ -42,12 +42,14 @@ class Sampler:
         return x, (x @ w).squeeze(-1)
 
 
-def eval_prompts(lam, n, seed, shifts, n_test=1000, n_probe=64, n_shift=256):
+def eval_prompts(lam, n, seed, shifts, n_test=1000, n_probe=64, n_shift=256, n_fit=64, n_query=16):
     """Fixed evaluation prompts.
 
     test:  in-distribution prompts.
     probe: n_probe prompts per direction j, with the task along that direction only (w = sqrt(d) e_j).
     shift: one set of tasks and contexts; only the final query changes, drawn from N(0, shifted(lam, t)).
+    fit:   n_fit contexts, each completed by n_query in-distribution queries, to fit the weights a model
+           implicitly uses (see train.gains).
     """
     d = len(lam)
     g = torch.Generator().manual_seed(seed)
@@ -65,4 +67,10 @@ def eval_prompts(lam, n, seed, shifts, n_test=1000, n_probe=64, n_shift=256):
     w = torch.randn(n_shift, d, generator=g)
     xs = torch.stack([torch.cat([context, zq @ scale(shifted(lam, t))], 1) for t in shifts])
     shift = dict(x=xs, y=torch.stack([tasks(x, w) for x in xs]), t=list(shifts))
-    return dict(test=test, probe=probe, shift=shift)
+
+    context = torch.randn(n_fit, n - 1, d, generator=g) @ A
+    w = torch.randn(n_fit, d, generator=g)
+    q = torch.randn(n_fit, n_query, d, generator=g) @ A
+    x = torch.cat([context.unsqueeze(1).expand(-1, n_query, -1, -1), q.unsqueeze(2)], 2).flatten(0, 1)
+    fit = dict(x=x, y=tasks(x, w.repeat_interleave(n_query, 0)), w=w, q=q)
+    return dict(test=test, probe=probe, shift=shift, fit=fit)

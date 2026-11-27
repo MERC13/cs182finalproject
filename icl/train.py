@@ -39,9 +39,25 @@ def rounded(a):
 
 
 @torch.no_grad()
+def gains(model, fit):
+    """Fit each context's predictions as a linear function of the query, yhat = a . x_q + b, and compare the fitted
+    weights a with the true task w: per direction j, the gain sum a_j w_j / sum w_j^2 (1: used fully, 0: ignored),
+    the relative error sum (a_j - w_j)^2 / sum w_j^2, and the R^2 of the linear fit."""
+    P, Q, _ = fit["q"].shape
+    yhat = predict(model, fit["x"], fit["y"])[:, -1].reshape(P, Q).double()
+    X = torch.cat([fit["q"].double(), torch.ones(P, Q, 1, dtype=torch.float64)], -1)
+    coef = torch.linalg.lstsq(X, yhat.unsqueeze(-1)).solution.squeeze(-1)
+    resid = yhat - (X @ coef.unsqueeze(-1)).squeeze(-1)
+    r2 = 1 - (resid ** 2).sum() / ((yhat - yhat.mean(1, keepdim=True)) ** 2).sum()
+    a, w = coef[:, :D], fit["w"].double()
+    return dict(iw_gain=rounded((a * w).sum(0) / (w * w).sum(0)), iw_err=rounded(((a - w) ** 2).sum(0) / (w * w).sum(0)),
+                iw_r2=rounded(r2))
+
+
+@torch.no_grad()
 def evaluate(model, ev, ref_names, ref_preds, shift):
     """Error after every number of examples; distance to each reference estimator (predictions with 8 or more
-    examples); relative probe error per direction; relative error on the shifted queries."""
+    examples); relative probe error per direction; and, with shift, the gains and the shifted-query errors."""
     model.eval()
     test, probe = ev["test"], ev["probe"]
     pred = predict(model, test["x"], test["y"])
@@ -53,6 +69,7 @@ def evaluate(model, ev, ref_names, ref_preds, shift):
     out["probe_err_k"] = rounded(torch.stack([((pred[j == i] - y[j == i]) ** 2).sum(0) / (y[j == i] ** 2).sum(0)
                                               for i in range(D)]))
     if shift:
+        out.update(gains(model, ev["fit"]))
         x, y = ev["shift"]["x"], ev["shift"]["y"]
         pred = predict(model, x.flatten(0, 1), y.flatten(0, 1)).view(y.shape)
         out["qshift_err"] = rounded(((pred[..., -1] - y[..., -1]) ** 2).sum(1) / (y[..., -1] ** 2).sum(1))

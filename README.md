@@ -5,12 +5,13 @@ linear attention on in-context linear regression with SGD, AdamW and Muon, and c
 one learns.
 
 ```bash
+git clone --depth 1 https://github.com/MERC13/cs182finalproject   # the full history adds about 1 GB of pilot logs
 pip install -r requirements.txt
 ```
 
 ## Reproduce the paper
 
-Every figure and number is computed from the committed logs in `runs/`; this takes a few seconds.
+Every figure and number is computed from the committed logs in `runs/`; this takes about a minute.
 
 ```bash
 python scripts/figures.py        # figures/*.pdf
@@ -20,13 +21,15 @@ python scripts/results.py        # every number in the text and tables
 ## Retrain
 
 ```bash
-grep -v '^#' jobs.txt | xargs -P 4 -L 1 python -m icl.train   # 31 GPT-2 runs, 2-5 CPU hours each
+grep -v '^#' jobs.txt | xargs -P 4 -L 1 python -m icl.train   # 35 GPT-2 runs, 1-5 CPU hours each
 python -m icl.linattn runs/linattn.json                       # linear attention, about 5 minutes on 4 cores
+python -m icl.linattn runs/linattn_rotated.json --rotated     # the same with the inputs in a random basis
 ```
 
-Training is deterministic on one CPU thread, so these commands rewrite the same logs; the exception is two runs that
-originally used several threads (`garg_scale/muon_pow1_lr0.0005_s10`, `garg_lr/muon_pow1_lr0.007_s10`), whose reruns
-match to rounding at first and then drift. The final weights of every GPT-2 run are next to its log:
+Training is deterministic on one CPU thread: with the pinned versions, reruns reproduce the logged values exactly on
+our machine (other CPUs can differ in the last digits). The exception is two runs that originally used several threads
+(`garg_scale/muon_pow1_lr0.0005_s10`, `garg_lr/muon_pow1_lr0.007_s10`), whose reruns match to rounding at first and
+then drift. The final weights of every GPT-2 run are next to its log:
 
 ```python
 from icl.model import GPT2
@@ -37,7 +40,7 @@ model = GPT2.load("runs/garg_scale/muon_s10.pt")   # model(x, y) -> predictions
 
 | Path | Contents |
 | --- | --- |
-| `icl/data.py` | the task and the evaluation prompts (in-distribution, probe, shifted queries) |
+| `icl/data.py` | the task and the evaluation prompts (in-distribution, probe, shifted queries, gain fits) |
 | `icl/model.py` | the GPT-2 |
 | `icl/optim.py` | Muon and the spectral knob |
 | `icl/estimators.py` | reference estimators: ridge, PCR, one-step gradient descent |
@@ -48,7 +51,7 @@ model = GPT2.load("runs/garg_scale/muon_s10.pt")   # model(x, y) -> predictions
 | `figures/` | the paper's figures |
 | `runs/garg_scale/` | logs (`.json`) and final weights (`.pt`) of the 12-layer GPT-2 runs |
 | `runs/garg_lr/` | the learning-rate check (Appendix B) |
-| `runs/linattn.json` | the linear-attention runs |
+| `runs/linattn.json`, `runs/linattn_rotated.json` | the linear-attention runs (inputs aligned with the axes, and rotated) |
 | `jobs.txt` | the command for every GPT-2 run |
 
 The learning rates of the GPT-2 runs come from sweeps on a smaller GPT-2 in an earlier pilot; that pilot's code, logs
